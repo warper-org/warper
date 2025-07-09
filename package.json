@@ -1,0 +1,43 @@
+{
+  "name": "warper",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The fastest React virtualization library ever created.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && npm run build:wasm",
+    "build:wasm": "cd wasm/rust && wasm-pack build --target web",
+    "dev": "vite",
+    "examples": "vite --config examples/vite.config.ts",
+    "example:list": "vite --config examples/list/vite.config.ts",
+    "example:grid": "vite --config examples/grid/vite.config.ts",
+    "example:one-million-rows": "vite --config examples/one-million-rows/vite.config.ts",
+    "example:warper-benchmark": "vite --config examples/warper-benchmark/vite.config.ts"
+  },
+  "devDependencies": {
+    "@tanstack/react-virtual": "^3.13.12",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/react-virtualized": "^9.22.2",
+    "@types/react-window": "^1.8.8",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-virtualized": "^9.22.6",
+    "react-window": "^1.8.11",
+    "recharts": "^2.12.7",
+    "rollup": "^4.44.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0",
+    "vite-plugin-top-level-await": "^1.5.0",
+    "vite-plugin-wasm": "^3.4.1"
+  },
+  "files": [
+    "dist",
+    "wasm/rust/pkg"
+  ],
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.6.0"
+  }
+}

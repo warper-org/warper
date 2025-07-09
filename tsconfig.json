@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "outDir": "./dist",
+    "declaration": true,
+    "paths": {
+      "warper": ["./index.ts"],
+      "warper/*": ["./*"]
+    }
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "NodeNext"
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "wasm/rust/pkg/warper_wasm.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
