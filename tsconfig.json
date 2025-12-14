@@ -37,6 +37,9 @@
     "wasm/rust/pkg/warper_wasm.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "benchmark",
+    "examples",
+    "dist"
   ]
 }

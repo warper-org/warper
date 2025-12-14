@@ -84,7 +84,7 @@ const styles = {
     background: '#00d4aa',
     color: '#0a0a0f',
   },
-  grid: {
+  tree: {
     flex: 1,
     overflow: 'hidden',
     margin: '16px 24px',
@@ -94,45 +94,85 @@ const styles = {
   },
 };
 
-const columnDefs = [
-  { key: 'id', label: 'id', width: 80 },
-  { key: 'ticker', label: 'ticker', width: 80 },
-  { key: 'price', label: 'price', width: 100 },
-  { key: 'change', label: 'change', width: 90 },
-  { key: 'volume', label: 'volume', width: 100 },
-  { key: 'mktCap', label: 'mkt_cap', width: 120 },
-  { key: 'pe', label: 'p/e', width: 70 },
-  { key: 'sector', label: 'sector', width: 100 },
+// File type icons and colors
+const fileTypes: Record<string, { icon: string; color: string }> = {
+  rs: { icon: '🦀', color: '#f97316' },
+  ts: { icon: '📘', color: '#3b82f6' },
+  tsx: { icon: '⚛️', color: '#06b6d4' },
+  js: { icon: '📒', color: '#eab308' },
+  jsx: { icon: '⚛️', color: '#eab308' },
+  json: { icon: '📋', color: '#22c55e' },
+  md: { icon: '📝', color: '#a1a1aa' },
+  css: { icon: '🎨', color: '#a855f7' },
+  html: { icon: '🌐', color: '#f97316' },
+  wasm: { icon: '⚡', color: '#00d4aa' },
+  toml: { icon: '⚙️', color: '#71717a' },
+  lock: { icon: '🔒', color: '#52525b' },
+  folder: { icon: '📁', color: '#eab308' },
+};
+
+const folderStructure = [
+  'src', 'components', 'hooks', 'utils', 'types', 'lib', 'core', 'wasm',
+  'tests', '__tests__', 'benchmark', 'examples', 'docs', 'scripts',
 ];
 
-const tickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'META', 'NVDA', 'TSLA', 'AMD', 'INTC', 'ORCL'];
-const sectors = ['tech', 'finance', 'health', 'energy', 'retail', 'auto', 'media', 'telecom'];
+const fileNames = [
+  'index', 'main', 'App', 'utils', 'helpers', 'types', 'constants',
+  'config', 'setup', 'store', 'reducer', 'actions', 'selectors',
+  'api', 'client', 'server', 'middleware', 'hooks', 'context',
+];
 
-function generateStockData(index: number) {
+function generateFileNode(index: number): {
+  name: string;
+  path: string;
+  isFolder: boolean;
+  depth: number;
+  size: number;
+  modified: string;
+  extension: string;
+} {
   const seed = index * 2654435761;
-  const ticker = tickers[index % tickers.length];
-  const basePrice = 50 + (seed % 500);
-  const change = ((seed % 2000) - 1000) / 100;
-  const volume = (seed % 10000000) + 100000;
-  const mktCap = basePrice * volume * 100;
-  const pe = 10 + (seed % 40);
+  const isFolder = index % 7 === 0;
+  const depth = (index % 4);
+  
+  let name: string;
+  let extension = '';
+  
+  if (isFolder) {
+    name = folderStructure[index % folderStructure.length];
+  } else {
+    const baseName = fileNames[index % fileNames.length];
+    const extensions = ['ts', 'tsx', 'js', 'jsx', 'rs', 'json', 'md', 'css', 'html', 'wasm', 'toml'];
+    extension = extensions[index % extensions.length];
+    name = `${baseName}.${extension}`;
+  }
+  
+  const pathParts = [];
+  for (let i = 0; i < depth; i++) {
+    pathParts.push(folderStructure[(index + i * 3) % folderStructure.length]);
+  }
   
   return {
-    id: `#${String(index).padStart(6, '0')}`,
-    ticker,
-    price: basePrice,
-    change,
-    volume,
-    mktCap,
-    pe,
-    sector: sectors[index % sectors.length],
+    name,
+    path: pathParts.length > 0 ? pathParts.join('/') + '/' + name : name,
+    isFolder,
+    depth,
+    size: isFolder ? 0 : (seed % 50000) + 100,
+    modified: new Date(Date.now() - (seed % 30) * 86400000).toLocaleDateString(),
+    extension: isFolder ? 'folder' : extension,
   };
 }
 
-function GridExample() {
-  const [rowCount, setRowCount] = useState(100000);
-  const [rowCountInput, setRowCountInput] = useState('100000');
-  const [colCount, setColCount] = useState(8);
+function formatSize(bytes: number): string {
+  if (bytes === 0) return '—';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function TreeExample() {
+  const [nodeCount, setNodeCount] = useState(100000);
+  const [nodeCountInput, setNodeCountInput] = useState('100000');
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(50);
   const [scrollSpeedInput, setScrollSpeedInput] = useState('50');
@@ -140,8 +180,6 @@ function GridExample() {
   const scrollDirectionRef = useRef(1);
   const warperRef = useRef<WarperComponentRef>(null);
   const { metrics, recordRender } = usePerformanceMonitor();
-
-  const visibleColumns = columnDefs.slice(0, colCount);
 
   useEffect(() => {
     if (!isAutoScrolling) return;
@@ -156,7 +194,7 @@ function GridExample() {
       const delta = time - lastTime;
       lastTime = time;
       
-      const pixelsPerMs = scrollSpeed * 0.5;
+      const pixelsPerMs = scrollSpeed * 0.4;
       const scrollAmount = pixelsPerMs * delta;
       
       switch (scrollPattern) {
@@ -176,7 +214,7 @@ function GridExample() {
           break;
           
         case 'random':
-          element.scrollTop += (Math.random() - 0.5) * scrollAmount * 5;
+          element.scrollTop += (Math.random() - 0.5) * scrollAmount * 4;
           break;
       }
       
@@ -187,10 +225,10 @@ function GridExample() {
     return () => cancelAnimationFrame(rafId);
   }, [isAutoScrolling, scrollSpeed, scrollPattern]);
 
-  const applyRowCount = () => {
-    const count = parseInt(rowCountInput, 10);
+  const applyNodeCount = () => {
+    const count = parseInt(nodeCountInput, 10);
     if (!isNaN(count) && count > 0) {
-      setRowCount(count);
+      setNodeCount(count);
     }
   };
 
@@ -201,71 +239,82 @@ function GridExample() {
     }
   };
 
-  const renderRow = (index: number) => {
-    const data = generateStockData(index);
+  const renderNode = (index: number) => {
+    const node = generateFileNode(index);
+    const fileType = fileTypes[node.extension] || { icon: '📄', color: '#71717a' };
+    
     return (
-      <div style={{
-        display: 'flex',
-        borderBottom: '1px solid #1a1a24',
-        fontSize: '11px',
-        height: '100%',
-        alignItems: 'center',
-      }}>
-        {visibleColumns.map((col) => {
-          let value: React.ReactNode = '';
-          let color = '#e4e4e7';
-          
-          switch (col.key) {
-            case 'id':
-              value = data.id;
-              color = '#52525b';
-              break;
-            case 'ticker':
-              value = data.ticker;
-              color = '#3b82f6';
-              break;
-            case 'price':
-              value = `$${data.price.toFixed(2)}`;
-              color = '#e4e4e7';
-              break;
-            case 'change':
-              value = `${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%`;
-              color = data.change >= 0 ? '#00d4aa' : '#ef4444';
-              break;
-            case 'volume':
-              value = (data.volume / 1000000).toFixed(2) + 'M';
-              color = '#a1a1aa';
-              break;
-            case 'mktCap':
-              value = '$' + (data.mktCap / 1000000000).toFixed(1) + 'B';
-              color = '#a855f7';
-              break;
-            case 'pe':
-              value = data.pe.toFixed(1);
-              color = '#71717a';
-              break;
-            case 'sector':
-              value = data.sector;
-              color = '#eab308';
-              break;
-          }
-          
-          return (
-            <div
-              key={col.key}
-              style={{
-                width: col.width,
-                padding: '10px 12px',
-                color,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {value}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          borderBottom: '1px solid #1a1a24',
+          fontSize: '11px',
+          cursor: 'pointer',
+          height: '100%',
+        }}
+      >
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          paddingLeft: node.depth * 16,
+          overflow: 'hidden',
+        }}>
+          {/* Indent lines */}
+          {node.depth > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+            }}>
+              {Array.from({ length: node.depth }).map((_, i) => (
+                <span key={i} style={{ color: '#2a2a35', fontSize: '8px' }}>│</span>
+              ))}
             </div>
-          );
-        })}
+          )}
+          
+          {/* Icon */}
+          <span style={{ fontSize: '12px' }}>{fileType.icon}</span>
+          
+          {/* Name */}
+          <span style={{
+            color: node.isFolder ? '#eab308' : fileType.color,
+            fontWeight: node.isFolder ? 600 : 400,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {node.name}
+          </span>
+          
+          {/* Index badge */}
+          <span style={{
+            fontSize: '9px',
+            color: '#3f3f46',
+            marginLeft: 'auto',
+          }}>
+            #{index}
+          </span>
+        </div>
+        
+        <div style={{
+          width: '100px',
+          textAlign: 'right',
+          color: '#71717a',
+        }}>
+          {formatSize(node.size)}
+        </div>
+        
+        <div style={{
+          width: '100px',
+          textAlign: 'right',
+          color: '#52525b',
+        }}>
+          {node.modified}
+        </div>
       </div>
     );
   };
@@ -274,38 +323,25 @@ function GridExample() {
     <div style={styles.container}>
       <div style={styles.header}>
         <div style={styles.title}>
-          <span style={{ color: '#a855f7' }}>[</span>
-          data_grid
-          <span style={{ color: '#a855f7' }}>]</span>
+          <span style={{ color: '#eab308' }}>[</span>
+          file_explorer
+          <span style={{ color: '#eab308' }}>]</span>
           <span style={{ color: '#52525b', marginLeft: '8px' }}>
-            {(rowCount * colCount).toLocaleString()} cells
+            {nodeCount.toLocaleString()} nodes
           </span>
         </div>
         
         <div style={styles.controls}>
           <div style={styles.controlGroup}>
-            <span style={styles.label}>rows</span>
+            <span style={styles.label}>nodes</span>
             <input
               type="text"
-              value={rowCountInput}
-              onChange={(e) => setRowCountInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyRowCount()}
-              onBlur={applyRowCount}
+              value={nodeCountInput}
+              onChange={(e) => setNodeCountInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && applyNodeCount()}
+              onBlur={applyNodeCount}
               style={styles.input}
             />
-          </div>
-          
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>cols</span>
-            <select
-              value={colCount}
-              onChange={(e) => setColCount(parseInt(e.target.value, 10))}
-              style={styles.select}
-            >
-              {[4, 5, 6, 7, 8].map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
           </div>
           
           <div style={styles.controlGroup}>
@@ -344,43 +380,35 @@ function GridExample() {
         <PerformanceMonitor metrics={metrics} />
       </div>
       
-      {/* Header Row */}
-      <div style={{ ...styles.grid, flex: 'none', margin: '16px 24px 0', borderRadius: '8px 8px 0 0' }}>
+      {/* Header */}
+      <div style={{ ...styles.tree, flex: 'none', margin: '16px 24px 0', borderRadius: '8px 8px 0 0' }}>
         <div style={{
           display: 'flex',
+          alignItems: 'center',
+          padding: '8px 16px',
           background: '#0a0a0f',
           borderBottom: '1px solid #1a1a24',
+          fontSize: '9px',
+          color: '#71717a',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
         }}>
-          {visibleColumns.map((col) => (
-            <div
-              key={col.key}
-              style={{
-                width: col.width,
-                padding: '10px 12px',
-                fontSize: '9px',
-                color: '#71717a',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                fontWeight: 600,
-              }}
-            >
-              {col.label}
-            </div>
-          ))}
+          <div style={{ flex: 1 }}>name</div>
+          <div style={{ width: '100px', textAlign: 'right' }}>size</div>
+          <div style={{ width: '100px', textAlign: 'right' }}>modified</div>
         </div>
       </div>
       
-      {/* Virtualized Grid */}
-      <div style={{ ...styles.grid, marginTop: 0, borderRadius: '0 0 8px 8px', borderTop: 'none' }}>
+      <div style={{ ...styles.tree, marginTop: 0, borderRadius: '0 0 8px 8px', borderTop: 'none' }}>
         <WarperComponent
           ref={warperRef}
-          itemCount={rowCount}
-          estimateSize={() => 36}
+          itemCount={nodeCount}
+          estimateSize={() => 32}
           overscan={5}
           style={{ height: '100%' }}
           onRendered={recordRender}
         >
-          {renderRow}
+          {renderNode}
         </WarperComponent>
       </div>
     </div>
@@ -389,7 +417,6 @@ function GridExample() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <GridExample />
+    <TreeExample />
   </StrictMode>
 );
-

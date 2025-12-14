@@ -1,19 +1,67 @@
 [package]
 name = "warper-wasm"
-version = "0.1.0"
+version = "5.0.0"
 edition = "2021"
+authors = ["Warper Team"]
+description = "Ultra-fast WASM Virtualization Engine - QUANTUM 120+ FPS"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib"]
 
-[dependencies]
-wasm-bindgen = "0.2"
-serde = { version = "1.0", features = ["derive"] }
-serde-wasm-bindgen = "0.4"
-lru = "0.12.3"
-ahash = { version = "0.8", default-features = false, features = ["compile-time-rng"] }
-wasm-bindgen-futures = "0.4.42"
-web-sys = { version = "0.3", features = ["console"] }
-
+# Disable wasm-opt for faster builds - rely on LLVM optimizations
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
+
+[dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+console_error_panic_hook = { version = "0.1", optional = true }
+
+[features]
+default = []
+dev = ["console_error_panic_hook"]
+
+# ============================================================================
+# QUANTUM MAXIMUM OPTIMIZATION - Release Profile
+# ============================================================================
+[profile.release]
+# Fat LTO for maximum cross-crate inlining
+lto = "fat"
+# Single codegen unit = best optimization, no parallelism in codegen
+codegen-units = 1
+# Maximum LLVM optimization level
+opt-level = 3
+# Abort on panic - no unwinding overhead
+panic = "abort"
+# No debug info in release
+debug = false
+# Disable overflow checks for maximum speed
+overflow-checks = false
+# Strip all symbols
+strip = "symbols"
+# No rpath
+rpath = false
+# Inline threshold - aggressive inlining
+# (controlled via #[inline(always)] in code)
+
+# Optimize all dependencies too
+[profile.release.package."*"]
+opt-level = 3
+codegen-units = 1
+
+# ============================================================================
+# Fast development builds
+# ============================================================================
+[profile.dev]
+opt-level = 2
+debug = false
+overflow-checks = false
+incremental = true
+
+# ============================================================================
+# Benchmark profile
+# ============================================================================
+[profile.bench]
+inherits = "release"
+debug = false

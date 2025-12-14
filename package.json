@@ -1,43 +1,47 @@
 {
   "name": "warper",
-  "version": "0.1.0",
+  "version": "5.0.0-quantum",
   "type": "module",
-  "description": "The fastest React virtualization library ever created.",
+  "description": "⚡ Ultra-fast React virtualization library - 120+ FPS, 1M+ items, powered by Rust/WASM",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && npm run build:wasm",
-    "build:wasm": "cd wasm/rust && wasm-pack build --target web",
     "dev": "vite",
-    "examples": "vite --config examples/vite.config.ts",
+    "build": "bun run build:wasm && tsc",
+    "build:wasm": "cd wasm/rust && wasm-pack build --target web --release",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
     "example:list": "vite --config examples/list/vite.config.ts",
     "example:grid": "vite --config examples/grid/vite.config.ts",
     "example:one-million-rows": "vite --config examples/one-million-rows/vite.config.ts",
-    "example:warper-benchmark": "vite --config examples/warper-benchmark/vite.config.ts"
+    "example:chat": "vite --config examples/chat/vite.config.ts",
+    "example:tree": "vite --config examples/tree/vite.config.ts"
+  },
+  "dependencies": {
+    "@types/react-window": "^1.8.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-fps": "^1.0.6",
+    "react-window": "^1.8.10",
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@tanstack/react-virtual": "^3.13.12",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
+    "@types/benchmark": "^2.1.5",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
     "@types/react-virtualized": "^9.22.2",
-    "@types/react-window": "^1.8.8",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
     "react-virtualized": "^9.22.6",
-    "react-window": "^1.8.11",
-    "recharts": "^2.12.7",
-    "rollup": "^4.44.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.0.0",
-    "vite": "^4.0.0",
+    "react-virtuoso": "^4.13.0",
+    "typescript": "^5.2.2",
+    "virtua": "^0.41.5",
+    "vite": "^5.2.0",
     "vite-plugin-top-level-await": "^1.5.0",
-    "vite-plugin-wasm": "^3.4.1"
-  },
-  "files": [
-    "dist",
-    "wasm/rust/pkg"
-  ],
-  "dependencies": {
-    "@vitejs/plugin-react": "^4.6.0"
+    "vite-plugin-wasm": "^3.5.0"
   }
 }

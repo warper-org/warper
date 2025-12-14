@@ -8,7 +8,7 @@ You are building **Warper**, a next-generation open-source React virtualization 
 
 * World’s **fastest** React virtualization engine
 * **WebAssembly-backed** performance (Rust preferred)
-* GPU-accelerated, **no-mercy FPS** (60–720fps)
+* GPU-accelerated, **smooth FPS** (60–120fps)
 * Handles **1M+** rows with sub-10ms render
 * **Cross-platform**, **cross-browser** compatibility
 * Built-in SSR + SEO support
@@ -30,7 +30,7 @@ You are building **Warper**, a next-generation open-source React virtualization 
 2. **GPU-Accelerated Scrolling**
 
    * Use `transform: translate3d()` with `will-change` hints
-   * Avoid layout thrashing and ensure consistent 60–720fps
+   * Avoid layout thrashing and ensure consistent 60–120fps
    * Polyfill fallback for non-GPU-supported contexts
 
 3. **WebAssembly Integration (Rust Preferred)**
@@ -167,7 +167,7 @@ warper/
 
 | Metric                    | Target                                 |
 | ------------------------- | -------------------------------------- |
-| Scroll FPS                | 60–720 fps                             |
+| Scroll FPS                | 60–120 fps                             |
 | Initial Render (10k rows) | < 10ms                                 |
 | Bundle Size               | < 50KB (tree-shakable)                 |
 | Memory Usage              | 40% less than react-virtualized        |

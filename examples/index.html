@@ -1,53 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Warper Examples</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        background-color: #f0f0f0;
-        color: #333;
-        margin: 0;
-        padding: 2rem;
-      }
-      h1 {
-        text-align: center;
-      }
-      ul {
-        list-style: none;
-        padding: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        justify-content: center;
-      }
-      li {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        overflow: hidden;
-      }
-      a {
-        display: block;
-        padding: 2rem;
-        text-decoration: none;
-        color: #007bff;
-        font-weight: bold;
-        transition: background-color 0.2s;
-      }
-      a:hover {
-        background-color: #e9ecef;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Warper Examples</h1>
-    <ul>
-      <li><a href="./list/index.html">List Example</a></li>
-      <li><a href="./grid/index.html">Grid Example</a></li>
-      <li><a href="./one-million-rows/index.html">One Million Rows Example</a></li>
-    </ul>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warper — Examples</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      background: #0a0a0f;
+      color: #e4e4e7;
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+    
+    h1 .bracket {
+      color: #00d4aa;
+    }
+    
+    .subtitle {
+      color: #71717a;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 32px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #00d4aa;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #71717a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+    
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    
+    .example-card {
+      background: #0f0f14;
+      border: 1px solid #1a1a24;
+      border-radius: 12px;
+      padding: 28px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .example-card:hover {
+      border-color: #00d4aa40;
+      background: #12121a;
+      transform: translateY(-2px);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border: 1px solid #1a1a24;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: #0a0a0f;
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e4e4e7;
+    }
+    
+    .card-description {
+      font-size: 13px;
+      color: #71717a;
+      line-height: 1.6;
+    }
+    
+    .card-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: auto;
+    }
+    
+    .tag {
+      padding: 4px 10px;
+      background: #1a1a24;
+      border-radius: 4px;
+      font-size: 10px;
+      color: #a1a1aa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .tag.accent {
+      background: #00d4aa20;
+      color: #00d4aa;
+    }
+    
+    .tag.purple {
+      background: #a855f720;
+      color: #a855f7;
+    }
+    
+    .tag.red {
+      background: #ef444420;
+      color: #ef4444;
+    }
+    
+    .tag.blue {
+      background: #3b82f620;
+      color: #3b82f6;
+    }
+    
+    .tag.yellow {
+      background: #eab30820;
+      color: #eab308;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 32px;
+      border-top: 1px solid #1a1a24;
+    }
+    
+    footer p {
+      font-size: 12px;
+      color: #52525b;
+    }
+    
+    footer a {
+      color: #00d4aa;
+      text-decoration: none;
+    }
+    
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span class="bracket">[</span>Warper<span class="bracket">]</span></h1>
+      <p class="subtitle">The fastest React virtualization library</p>
+      
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">60+</div>
+          <div class="stat-label">FPS</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">10M+</div>
+          <div class="stat-label">Items</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">O(log n)</div>
+          <div class="stat-label">Complexity</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">WASM</div>
+          <div class="stat-label">Powered</div>
+        </div>
+      </div>
+    </header>
+    
+    <div class="examples-grid">
+      <a href="./list/index.html" class="example-card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <div class="card-title">Data Table</div>
+        </div>
+        <p class="card-description">
+          Employee records with status indicators, performance metrics, 
+          and department filtering. Demonstrates uniform row heights.
+        </p>
+        <div class="card-tags">
+          <span class="tag accent">50K rows</span>
+          <span class="tag">uniform height</span>
+          <span class="tag">sortable</span>
+        </div>
+      </a>
+      
+      <a href="./one-million-rows/index.html" class="example-card">
+        <div class="card-header">
+          <div class="card-icon">🔥</div>
+          <div class="card-title">Extreme Stress Test</div>
+        </div>
+        <p class="card-description">
+          Push the limits with up to 10 million rows. Real-time transaction 
+          data with hash, timestamps, and status indicators.
+        </p>
+        <div class="card-tags">
+          <span class="tag red">10M rows</span>
+          <span class="tag">stress test</span>
+          <span class="tag">benchmarking</span>
+        </div>
+      </a>
+      
+      <a href="./grid/index.html" class="example-card">
+        <div class="card-header">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Spreadsheet Grid</div>
+        </div>
+        <p class="card-description">
+          Configurable data grid with multiple columns. Currency, percentage, 
+          and status columns with color-coded values.
+        </p>
+        <div class="card-tags">
+          <span class="tag purple">1M+ cells</span>
+          <span class="tag">configurable</span>
+          <span class="tag">multi-column</span>
+        </div>
+      </a>
+      
+      <a href="./chat/index.html" class="example-card">
+        <div class="card-header">
+          <div class="card-icon">💬</div>
+          <div class="card-title">Message Thread</div>
+        </div>
+        <p class="card-description">
+          Chat interface with variable height messages. Supports code blocks, 
+          reactions, and different message types.
+        </p>
+        <div class="card-tags">
+          <span class="tag blue">variable height</span>
+          <span class="tag">code blocks</span>
+          <span class="tag">avatars</span>
+        </div>
+      </a>
+      
+      <a href="./tree/index.html" class="example-card">
+        <div class="card-header">
+          <div class="card-icon">🗂️</div>
+          <div class="card-title">File Explorer</div>
+        </div>
+        <p class="card-description">
+          Hierarchical tree view with file icons, sizes, and modification dates. 
+          Simulates a large codebase structure.
+        </p>
+        <div class="card-tags">
+          <span class="tag yellow">tree structure</span>
+          <span class="tag">file icons</span>
+          <span class="tag">nested</span>
+        </div>
+      </a>
+    </div>
+    
+    <footer>
+      <p>
+        Warper v4.0 NECROMANCER · 
+        <a href="https://github.com/itsmeadarsh2008/warper" target="_blank">GitHub</a>
+      </p>
+    </footer>
+  </div>
+</body>
 </html>
