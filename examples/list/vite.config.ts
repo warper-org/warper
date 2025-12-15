@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import wasm from 'vite-plugin-wasm';
+import topLevelAwait from 'vite-plugin-top-level-await';
 import path from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), wasm(), topLevelAwait()],
   root: __dirname,
+  base: '/list/',
   server: {
     port: 3000,
   },
@@ -13,5 +15,8 @@ export default defineConfig({
     alias: {
       'warper': path.resolve(__dirname, '../../'),
     },
+  },
+  build: {
+    target: 'esnext',
   },
 });

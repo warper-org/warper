@@ -1,17 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import wasm from 'vite-plugin-wasm';
+import topLevelAwait from 'vite-plugin-top-level-await';
 import path from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), wasm(), topLevelAwait()],
   root: __dirname,
+  base: '/grid/',
   server: {
-    port: 3002, // Use a different port for the grid example
+    port: 3002,
   },
   resolve: {
     alias: {
       'warper': path.resolve(__dirname, '../../'),
     },
+  },
+  build: {
+    target: 'esnext',
   },
 });
