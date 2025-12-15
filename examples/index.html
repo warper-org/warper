@@ -3,311 +3,1135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Warper — Examples</title>
+  <title>Warper — Ultra-Fast React Virtualization</title>
+  <meta name="description" content="WebAssembly-powered React virtualization for 1M+ items at 120+ FPS. Built with Rust for maximum performance.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script type="module">
+    import { codeToHtml } from 'https://esm.sh/shiki@1.0.0';
+    
+    const codeExample = `import { WarperComponent } from 'warper';
+
+function App() {
+  return (
+    <WarperComponent
+      itemCount={1_000_000}
+      estimateSize={() => 44}
+      overscan={5}
+    >
+      {(index) => <Row data={items[index]} />}
+    </WarperComponent>
+  );
+}`;
+
+    async function highlightCode() {
+      const html = await codeToHtml(codeExample, {
+        lang: 'tsx',
+        theme: 'github-dark'
+      });
+      const codeBody = document.getElementById('shiki-code');
+      if (codeBody) {
+        codeBody.innerHTML = html;
+        // Style overrides for the generated code
+        const pre = codeBody.querySelector('pre');
+        if (pre) {
+          pre.style.background = 'transparent';
+          pre.style.margin = '0';
+          pre.style.padding = '0';
+          pre.style.fontSize = '13px';
+          pre.style.lineHeight = '1.8';
+        }
+      }
+    }
+    
+    highlightCode();
+  </script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --accent: #00d4aa;
+      --accent-dim: #00d4aa20;
+      --bg-dark: #050508;
+      --bg-card: #0a0a0f;
+      --bg-elevated: #0f0f14;
+      --border: #1a1a24;
+      --border-hover: #2a2a35;
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --text-dim: #52525b;
+      --purple: #a855f7;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --orange: #f97316;
+      --yellow: #eab308;
     }
     
-    html, body {
-      height: 100%;
-      background: #0a0a0f;
-      color: #e4e4e7;
-      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+      overflow-x: hidden;
     }
     
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 60px 24px;
-    }
-    
-    header {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-    
-    h1 {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      letter-spacing: -1px;
-    }
-    
-    h1 .bracket {
-      color: #00d4aa;
-    }
-    
-    .subtitle {
-      color: #71717a;
-      font-size: 14px;
-      letter-spacing: 0.5px;
-    }
-    
-    .stats {
+    /* ===== NAVIGATION ===== */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 32px;
       display: flex;
-      justify-content: center;
-      gap: 32px;
-      margin-top: 32px;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(5, 5, 8, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
     }
     
-    .stat {
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .nav-logo .bolt {
+      color: var(--accent);
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+    
+    .nav-cta {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+    
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-ghost:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-dark);
+    }
+    
+    .btn-primary:hover {
+      background: #00e6b8;
+      transform: translateY(-1px);
+    }
+    
+    /* ===== HERO SECTION ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(0, 212, 170, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 20%;
+      right: 10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+    
+    .hero-badge .version {
+      padding: 2px 8px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+    
+    .hero h1 {
+      font-size: clamp(48px, 8vw, 80px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, var(--accent), #00f0c8, var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-subtitle {
+      font-size: 20px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 60px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .btn-large {
+      padding: 16px 32px;
+      font-size: 16px;
+    }
+    
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .hero-stat {
       text-align: center;
     }
     
-    .stat-value {
-      font-size: 28px;
+    .hero-stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
       font-weight: 700;
-      color: #00d4aa;
+      color: var(--accent);
+      line-height: 1;
     }
     
-    .stat-label {
-      font-size: 11px;
-      color: #71717a;
+    .hero-stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-top: 4px;
+      margin-top: 8px;
+    }
+    
+    /* ===== CODE PREVIEW ===== */
+    .code-preview {
+      max-width: 700px;
+      margin: 60px auto 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: left;
+    }
+    
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .code-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .code-dot.red { background: #ff5f56; }
+    .code-dot.yellow { background: #ffbd2e; }
+    .code-dot.green { background: #27ca40; }
+    
+    .code-title {
+      margin-left: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .code-body {
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    
+    .code-body .keyword { color: var(--purple); }
+    .code-body .function { color: var(--blue); }
+    .code-body .string { color: var(--accent); }
+    .code-body .number { color: var(--orange); }
+    .code-body .comment { color: var(--text-dim); }
+    .code-body .component { color: var(--yellow); }
+    .code-body .prop { color: #7dd3fc; }
+    
+    /* ===== FEATURES SECTION ===== */
+    .features {
+      padding: 120px 24px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+    }
+    
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+    
+    .section-title {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    
+    .section-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    
+    .feature-card {
+      padding: 32px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+    
+    .feature-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+    }
+    
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-dim);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    
+    .feature-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    .feature-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    
+    /* ===== EXAMPLES SECTION ===== */
+    .examples {
+      padding: 120px 24px;
     }
     
     .examples-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
     }
     
     .example-card {
-      background: #0f0f14;
-      border: 1px solid #1a1a24;
-      border-radius: 12px;
-      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
       text-decoration: none;
       color: inherit;
-      transition: all 0.2s ease;
+      transition: all 0.3s;
       display: flex;
       flex-direction: column;
-      gap: 16px;
     }
     
     .example-card:hover {
-      border-color: #00d4aa40;
-      background: #12121a;
-      transform: translateY(-2px);
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 212, 170, 0.1);
     }
     
-    .card-header {
+    .example-preview {
+      height: 160px;
+      background: var(--bg-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .example-preview::after {
+      content: 'Click to Launch →';
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      font-size: 11px;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .example-card:hover .example-preview::after {
+      opacity: 1;
+    }
+    
+    .example-content {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .example-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .example-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+      flex: 1;
+    }
+    
+    .example-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .tag {
+      padding: 4px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    
+    .tag.accent { background: var(--accent-dim); color: var(--accent); border-color: transparent; }
+    .tag.purple { background: rgba(168, 85, 247, 0.15); color: var(--purple); border-color: transparent; }
+    .tag.blue { background: rgba(59, 130, 246, 0.15); color: var(--blue); border-color: transparent; }
+    .tag.red { background: rgba(239, 68, 68, 0.15); color: var(--red); border-color: transparent; }
+    .tag.yellow { background: rgba(234, 179, 8, 0.15); color: var(--yellow); border-color: transparent; }
+    
+    /* ===== ARCHITECTURE SECTION ===== */
+    .architecture {
+      padding: 120px 24px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+    }
+    
+    .arch-diagram {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .arch-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .arch-box {
+      padding: 16px 24px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      min-width: 140px;
+    }
+    
+    .arch-box.highlight {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    
+    .arch-box-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    
+    .arch-box-subtitle {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    
+    .arch-arrow {
+      text-align: center;
+      color: var(--accent);
+      font-size: 24px;
+      margin: 8px 0;
+    }
+    
+    /* ===== LICENSE SECTION ===== */
+    .license {
+      padding: 120px 24px;
+    }
+    
+    .license-card {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px;
+      text-align: center;
+    }
+    
+    .license-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      background: var(--accent-dim);
+      border-radius: 12px;
+      margin-bottom: 32px;
+    }
+    
+    .license-badge-icon {
+      font-size: 32px;
+    }
+    
+    .license-badge-text {
+      text-align: left;
+    }
+    
+    .license-badge-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    
+    .license-badge-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .license-description {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 32px;
+    }
+    
+    .license-permissions {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .license-permission {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .license-permission .check {
+      color: var(--accent);
+      font-size: 18px;
+    }
+    
+    /* ===== FOOTER ===== */
+    footer {
+      padding: 60px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    
+    .footer-brand {
       display: flex;
       align-items: center;
       gap: 12px;
     }
     
-    .card-icon {
-      width: 44px;
-      height: 44px;
-      border: 1px solid #1a1a24;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .footer-logo {
+      font-family: 'JetBrains Mono', monospace;
       font-size: 20px;
-      background: #0a0a0f;
+      font-weight: 700;
+      color: var(--text-primary);
     }
     
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #e4e4e7;
+    .footer-logo .bolt {
+      color: var(--accent);
     }
     
-    .card-description {
+    .footer-tagline {
       font-size: 13px;
-      color: #71717a;
-      line-height: 1.6;
+      color: var(--text-muted);
     }
     
-    .card-tags {
+    .footer-links {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: auto;
+      gap: 32px;
     }
     
-    .tag {
-      padding: 4px 10px;
-      background: #1a1a24;
-      border-radius: 4px;
-      font-size: 10px;
-      color: #a1a1aa;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .tag.accent {
-      background: #00d4aa20;
-      color: #00d4aa;
-    }
-    
-    .tag.purple {
-      background: #a855f720;
-      color: #a855f7;
-    }
-    
-    .tag.red {
-      background: #ef444420;
-      color: #ef4444;
-    }
-    
-    .tag.blue {
-      background: #3b82f620;
-      color: #3b82f6;
-    }
-    
-    .tag.yellow {
-      background: #eab30820;
-      color: #eab308;
-    }
-    
-    footer {
-      text-align: center;
-      margin-top: 60px;
-      padding-top: 32px;
-      border-top: 1px solid #1a1a24;
-    }
-    
-    footer p {
-      font-size: 12px;
-      color: #52525b;
-    }
-    
-    footer a {
-      color: #00d4aa;
+    .footer-links a {
+      color: var(--text-secondary);
       text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
     }
     
-    footer a:hover {
-      text-decoration: underline;
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+    
+    .footer-copyright {
+      width: 100%;
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      nav {
+        padding: 12px 16px;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .hero h1 {
+        font-size: 36px;
+      }
+      
+      .hero-stats {
+        gap: 24px;
+      }
+      
+      .hero-stat-value {
+        font-size: 28px;
+      }
+      
+      .section-title {
+        font-size: 28px;
+      }
+      
+      .license-card {
+        padding: 32px 24px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1><span class="bracket">[</span>Warper<span class="bracket">]</span></h1>
-      <p class="subtitle">The fastest React virtualization library</p>
-      
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-value">60+</div>
-          <div class="stat-label">FPS</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">10M+</div>
-          <div class="stat-label">Items</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">O(log n)</div>
-          <div class="stat-label">Complexity</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">WASM</div>
-          <div class="stat-label">Powered</div>
-        </div>
-      </div>
-    </header>
-    
-    <div class="examples-grid">
-      <a href="./list/index.html" class="example-card">
-        <div class="card-header">
-          <div class="card-icon">📋</div>
-          <div class="card-title">Data Table</div>
-        </div>
-        <p class="card-description">
-          Employee records with status indicators, performance metrics, 
-          and department filtering. Demonstrates uniform row heights.
-        </p>
-        <div class="card-tags">
-          <span class="tag accent">50K rows</span>
-          <span class="tag">uniform height</span>
-          <span class="tag">sortable</span>
-        </div>
-      </a>
-      
-      <a href="./one-million-rows/index.html" class="example-card">
-        <div class="card-header">
-          <div class="card-icon">🔥</div>
-          <div class="card-title">Extreme Stress Test</div>
-        </div>
-        <p class="card-description">
-          Push the limits with up to 10 million rows. Real-time transaction 
-          data with hash, timestamps, and status indicators.
-        </p>
-        <div class="card-tags">
-          <span class="tag red">10M rows</span>
-          <span class="tag">stress test</span>
-          <span class="tag">benchmarking</span>
-        </div>
-      </a>
-      
-      <a href="./grid/index.html" class="example-card">
-        <div class="card-header">
-          <div class="card-icon">📊</div>
-          <div class="card-title">Spreadsheet Grid</div>
-        </div>
-        <p class="card-description">
-          Configurable data grid with multiple columns. Currency, percentage, 
-          and status columns with color-coded values.
-        </p>
-        <div class="card-tags">
-          <span class="tag purple">1M+ cells</span>
-          <span class="tag">configurable</span>
-          <span class="tag">multi-column</span>
-        </div>
-      </a>
-      
-      <a href="./chat/index.html" class="example-card">
-        <div class="card-header">
-          <div class="card-icon">💬</div>
-          <div class="card-title">Message Thread</div>
-        </div>
-        <p class="card-description">
-          Chat interface with variable height messages. Supports code blocks, 
-          reactions, and different message types.
-        </p>
-        <div class="card-tags">
-          <span class="tag blue">variable height</span>
-          <span class="tag">code blocks</span>
-          <span class="tag">avatars</span>
-        </div>
-      </a>
-      
-      <a href="./tree/index.html" class="example-card">
-        <div class="card-header">
-          <div class="card-icon">🗂️</div>
-          <div class="card-title">File Explorer</div>
-        </div>
-        <p class="card-description">
-          Hierarchical tree view with file icons, sizes, and modification dates. 
-          Simulates a large codebase structure.
-        </p>
-        <div class="card-tags">
-          <span class="tag yellow">tree structure</span>
-          <span class="tag">file icons</span>
-          <span class="tag">nested</span>
-        </div>
+  <!-- Navigation -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <span class="bolt">⚡</span> Warper
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#examples">Examples</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#license">License</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="https://github.com/itsmeadarsh2008/warper" target="_blank" class="btn btn-ghost">GitHub</a>
+      <a href="https://github.com/sponsors/itsmeadarsh2008" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <svg height="14" viewBox="0 0 16 16" width="14" fill="currentColor">
+          <path d="M4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.565 20.565 0 008 13.393a20.561 20.561 0 003.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.75.75 0 01-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5zM8 14.25l-.345.666-.002-.001-.006-.003-.018-.01a7.643 7.643 0 01-.31-.17 22.075 22.075 0 01-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.08 22.08 0 01-3.744 2.584l-.018.01-.006.003h-.002L8 14.25zm0 0l.345.666a.752.752 0 01-.69 0L8 14.25z"></path>
+        </svg>
+        Sponsor
       </a>
     </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="version">v5.0</span>
+      <span>QUANTUM Engine — Rust + WebAssembly</span>
+    </div>
     
-    <footer>
-      <p>
-        Warper v4.0 NECROMANCER · 
-        <a href="https://github.com/itsmeadarsh2008/warper" target="_blank">GitHub</a>
-      </p>
-    </footer>
-  </div>
+    <h1>
+      <span class="gradient">Ultra-Fast</span><br>
+      React Virtualization
+    </h1>
+    
+    <p class="hero-subtitle">
+      The performance-first virtualization library. Powered by WebAssembly, 
+      built with Rust, designed for millions of items at 120+ FPS.
+    </p>
+    
+    <div class="hero-cta">
+      <a href="./one-million-rows/index.html" class="btn btn-primary btn-large">🔥 Launch Stress Test</a>
+      <a href="https://github.com/itsmeadarsh2008/warper" target="_blank" class="btn btn-ghost btn-large">View on GitHub</a>
+    </div>
+    
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-value">120+</div>
+        <div class="hero-stat-label">FPS</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">10M+</div>
+        <div class="hero-stat-label">Items</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">O(1)</div>
+        <div class="hero-stat-label">Lookups</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">&lt;50KB</div>
+        <div class="hero-stat-label">Bundle</div>
+      </div>
+    </div>
+    
+    <!-- Code Preview -->
+    <div class="code-preview">
+      <div class="code-header">
+        <div class="code-dot red"></div>
+        <div class="code-dot yellow"></div>
+        <div class="code-dot green"></div>
+        <span class="code-title">App.tsx</span>
+      </div>
+      <div class="code-body" id="shiki-code">
+        <div style="color: var(--text-muted); font-style: italic;">Loading syntax highlighting...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-label">Why Warper?</div>
+        <h2 class="section-title">Built for Performance</h2>
+        <p class="section-subtitle">
+          Every optimization matters. Warper uses advanced techniques to deliver 
+          buttery-smooth scrolling with any dataset size.
+        </p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🦀</div>
+          <h3 class="feature-title">Rust + WebAssembly</h3>
+          <p class="feature-description">
+            Core calculations run in compiled WebAssembly. Near-native performance 
+            for range calculations, prefix sums, and binary search.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">O(1) Index Lookups</h3>
+          <p class="feature-description">
+            Fenwick trees enable constant-time offset calculations. No more O(n) 
+            scans through your entire dataset on every scroll.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3 class="feature-title">Zero GC Pressure</h3>
+          <p class="feature-description">
+            Pre-allocated memory pools mean no garbage collection during scroll. 
+            Smooth 120+ FPS even during aggressive scrolling.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📐</div>
+          <h3 class="feature-title">Variable Heights</h3>
+          <p class="feature-description">
+            Full support for dynamic item sizes. The Fenwick tree handles 
+            recalculations in O(log n) time automatically.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🎮</div>
+          <h3 class="feature-title">GPU Accelerated</h3>
+          <p class="feature-description">
+            CSS transform3d and contain: strict for hardware-accelerated 
+            compositing. Offload work to the GPU.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3 class="feature-title">Adaptive Overscan</h3>
+          <p class="feature-description">
+            Smart prefetching based on scroll velocity. More items are 
+            pre-rendered during fast scrolling.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Examples Section -->
+  <section class="examples" id="examples">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-label">Live Demos</div>
+        <h2 class="section-title">See It In Action</h2>
+        <p class="section-subtitle">
+          Interactive examples demonstrating Warper's capabilities. 
+          Click any card to launch the demo.
+        </p>
+      </div>
+      
+      <div class="examples-grid">
+        <a href="./one-million-rows/index.html" class="example-card">
+          <div class="example-preview">🔥</div>
+          <div class="example-content">
+            <h3 class="example-title">Extreme Stress Test</h3>
+            <p class="example-description">
+              Push the limits with up to 10 million rows. Real-time transaction 
+              data with multiple scroll patterns and stress modes.
+            </p>
+            <div class="example-tags">
+              <span class="tag red">10M rows</span>
+              <span class="tag">chaos mode</span>
+              <span class="tag">FPS monitor</span>
+            </div>
+          </div>
+        </a>
+        
+        <a href="./list/index.html" class="example-card">
+          <div class="example-preview">📋</div>
+          <div class="example-content">
+            <h3 class="example-title">Data Table</h3>
+            <p class="example-description">
+              Employee records with status indicators, performance metrics, 
+              and department data. Demonstrates uniform row heights.
+            </p>
+            <div class="example-tags">
+              <span class="tag accent">50K rows</span>
+              <span class="tag">uniform height</span>
+            </div>
+          </div>
+        </a>
+        
+        <a href="./grid/index.html" class="example-card">
+          <div class="example-preview">📊</div>
+          <div class="example-content">
+            <h3 class="example-title">Spreadsheet Grid</h3>
+            <p class="example-description">
+              Configurable data grid with multiple columns. Currency, percentage, 
+              and status columns with color-coded values.
+            </p>
+            <div class="example-tags">
+              <span class="tag purple">1M+ cells</span>
+              <span class="tag">multi-column</span>
+            </div>
+          </div>
+        </a>
+        
+        <a href="./chat/index.html" class="example-card">
+          <div class="example-preview">💬</div>
+          <div class="example-content">
+            <h3 class="example-title">Message Thread</h3>
+            <p class="example-description">
+              Chat interface with variable height messages. Supports code blocks, 
+              reactions, and different message types.
+            </p>
+            <div class="example-tags">
+              <span class="tag blue">variable height</span>
+              <span class="tag">code blocks</span>
+            </div>
+          </div>
+        </a>
+        
+        <a href="./tree/index.html" class="example-card">
+          <div class="example-preview">🗂️</div>
+          <div class="example-content">
+            <h3 class="example-title">File Explorer</h3>
+            <p class="example-description">
+              Hierarchical tree view with file icons, sizes, and modification 
+              dates. Simulates a large codebase structure.
+            </p>
+            <div class="example-tags">
+              <span class="tag yellow">tree structure</span>
+              <span class="tag">100K nodes</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Section -->
+  <section class="architecture" id="architecture">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-label">Under The Hood</div>
+        <h2 class="section-title">QUANTUM Architecture</h2>
+        <p class="section-subtitle">
+          A high-performance stack designed for one thing: speed.
+        </p>
+      </div>
+      
+      <div class="arch-diagram">
+        <div class="arch-row">
+          <div class="arch-box">
+            <div class="arch-box-title">React Component</div>
+            <div class="arch-box-subtitle">WarperComponent</div>
+          </div>
+        </div>
+        
+        <div class="arch-arrow">↓</div>
+        
+        <div class="arch-row">
+          <div class="arch-box">
+            <div class="arch-box-title">useVirtualizer</div>
+            <div class="arch-box-subtitle">React Hook</div>
+          </div>
+        </div>
+        
+        <div class="arch-arrow">↓</div>
+        
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-box-title">WASM Bridge</div>
+            <div class="arch-box-subtitle">Zero-Copy Transfer</div>
+          </div>
+        </div>
+        
+        <div class="arch-arrow">↓</div>
+        
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-box-title">QuantumUniform</div>
+            <div class="arch-box-subtitle">O(1) Fixed Height</div>
+          </div>
+          <div class="arch-box highlight">
+            <div class="arch-box-title">QuantumVariable</div>
+            <div class="arch-box-subtitle">O(log n) Variable</div>
+          </div>
+        </div>
+        
+        <div class="arch-arrow">↓</div>
+        
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-box-title">QuantumFenwick</div>
+            <div class="arch-box-subtitle">Prefix Sum Tree</div>
+          </div>
+          <div class="arch-box highlight">
+            <div class="arch-box-title">QuantumPool</div>
+            <div class="arch-box-subtitle">Memory Pool</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- License Section -->
+  <section class="license" id="license">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-label">Get Access</div>
+        <h2 class="section-title">Commercial License</h2>
+      </div>
+      
+      <div class="license-card">
+        <div class="license-badge" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(0, 212, 170, 0.2));">
+          <div class="license-badge-icon">💎</div>
+          <div class="license-badge-text">
+            <div class="license-badge-title" style="background: linear-gradient(135deg, var(--purple), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Sponsor Access</div>
+            <div class="license-badge-subtitle">Become a GitHub Sponsor to unlock Warper</div>
+          </div>
+        </div>
+        
+        <p class="license-description">
+          Warper is available through GitHub Sponsors. Support the development and get 
+          full access to the QUANTUM Engine, all features, and priority support.
+        </p>
+        
+        <div style="margin-bottom: 32px;">
+          <a href="https://github.com/sponsors/itsmeadarsh2008" target="_blank" class="btn btn-primary btn-large" style="display: inline-flex; align-items: center; gap: 8px;">
+            <svg height="16" viewBox="0 0 16 16" width="16" fill="currentColor">
+              <path d="M4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.565 20.565 0 008 13.393a20.561 20.561 0 003.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.75.75 0 01-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5zM8 14.25l-.345.666-.002-.001-.006-.003-.018-.01a7.643 7.643 0 01-.31-.17 22.075 22.075 0 01-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.08 22.08 0 01-3.744 2.584l-.018.01-.006.003h-.002L8 14.25zm0 0l.345.666a.752.752 0 01-.69 0L8 14.25z"></path>
+            </svg>
+            Sponsor on GitHub
+          </a>
+        </div>
+        
+        <div class="license-permissions">
+          <div class="license-permission">
+            <span class="check">✓</span> Full Source Access
+          </div>
+          <div class="license-permission">
+            <span class="check">✓</span> Commercial Use
+          </div>
+          <div class="license-permission">
+            <span class="check">✓</span> Priority Support
+          </div>
+          <div class="license-permission">
+            <span class="check">✓</span> Future Updates
+          </div>
+        </div>
+        
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+          <p style="font-size: 13px; color: var(--text-muted);">
+            Questions? Contact <a href="mailto:e2vylu0d0@mozmail.com" style="color: var(--accent);">e2vylu0d0@mozmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo"><span class="bolt">⚡</span> Warper</div>
+        <div class="footer-tagline">v5.0 QUANTUM Engine</div>
+      </div>
+      
+      <div class="footer-links">
+        <a href="https://github.com/warper-org/warper" target="_blank">GitHub</a>
+        <a href="https://github.com/sponsors/itsmeadarsh2008" target="_blank">Sponsor</a>
+        <a href="https://github.com/warper-org/warper/blob/main/LICENSE" target="_blank">License</a>
+      </div>
+      
+      <div class="footer-copyright">
+        © 2024 Adarsh. Commercial License — <a href="https://github.com/sponsors/itsmeadarsh2008" style="color: var(--accent);">Sponsor to Access</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

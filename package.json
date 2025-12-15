@@ -1,10 +1,19 @@
 {
-  "name": "warper",
+  "name": "@warper-org/warper",
   "version": "5.0.0-quantum",
   "type": "module",
+  "private": false,
   "description": "⚡ Ultra-fast React virtualization library - 120+ FPS, 1M+ items, powered by Rust/WASM",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/warper-org/warper.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
   "scripts": {
     "dev": "vite",
     "build": "bun run build:wasm && tsc",
@@ -18,28 +27,18 @@
     "example:tree": "vite --config examples/tree/vite.config.ts"
   },
   "dependencies": {
-    "@types/react-window": "^1.8.8",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-fps": "^1.0.6",
-    "react-window": "^1.8.10",
-    "recharts": "^2.12.7"
+    "react-dom": "^18.2.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@tanstack/react-virtual": "^3.13.12",
-    "@types/benchmark": "^2.1.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
-    "@types/react-virtualized": "^9.22.2",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@vitejs/plugin-react": "^4.2.1",
-    "eslint-plugin-react": "^7.32.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "react-virtualized": "^9.22.6",
-    "react-virtuoso": "^4.13.0",
     "typescript": "^5.2.2",
-    "virtua": "^0.41.5",
     "vite": "^5.2.0",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.5.0"

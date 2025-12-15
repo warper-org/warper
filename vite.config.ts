@@ -13,6 +13,6 @@ export default defineConfig({
     },
   },
   server: {
-    open: '/list/index.html'
+    open: '/index.html'
   }
 });

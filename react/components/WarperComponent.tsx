@@ -6,7 +6,6 @@
  */
 
 import React, { memo, useImperativeHandle, forwardRef, CSSProperties, useCallback, useMemo, useEffect, useRef } from 'react';
-import { FpsView } from 'react-fps';
 import { useVirtualizer } from '../hooks/useVirtualizer';
 import { VirtualizerOptions } from '../../types';
 
@@ -21,7 +20,6 @@ export interface WarperComponentProps<T> extends VirtualizerOptions<T> {
   errorPlaceholder?: (error: Error) => React.ReactNode;
   className?: string;
   style?: CSSProperties;
-  showFPS?: boolean;
 }
 
 export interface WarperComponentRef {
@@ -108,7 +106,6 @@ function WarperComponentInner<T>(
     loadingPlaceholder,
     errorPlaceholder,
     onRendered,
-    showFPS = false,
   }: WarperComponentProps<T>,
   ref: React.ForwardedRef<WarperComponentRef>
 ) {
@@ -226,7 +223,6 @@ function WarperComponentInner<T>(
 
   return (
     <div ref={handleRef} style={containerStyle} className={className} data-warper-container>
-      {showFPS && <FpsView width={100} height={50} top={8} right={8} />}
       <div style={innerStyle} data-warper-inner>
         {/* Direct iteration - no map overhead for small arrays */}
         {count <= 50 ? (

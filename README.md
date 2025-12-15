@@ -4,7 +4,7 @@
 
 ![Warper Banner](https://img.shields.io/badge/WARPER-QUANTUM-00ff88?style=for-the-badge&labelColor=0f0f1a)
 ![Version](https://img.shields.io/badge/version-5.0.0-00d9ff?style=for-the-badge&labelColor=0f0f1a)
-![License](https://img.shields.io/badge/license-MIT-ffdd00?style=for-the-badge&labelColor=0f0f1a)
+![License](https://img.shields.io/badge/license-Commercial-ff6b6b?style=for-the-badge&labelColor=0f0f1a)
 ![FPS](https://img.shields.io/badge/FPS-120+-ff3366?style=for-the-badge&labelColor=0f0f1a)
 
 ### **Ultra-Fast React Virtualization Library**
@@ -13,7 +13,24 @@
 
 *Powered by Rust + WebAssembly QUANTUM Engine*
 
+<br />
+
+[![Sponsor](https://img.shields.io/badge/Sponsor_on_GitHub-💜-ea4aaa?style=for-the-badge)](https://github.com/sponsors/itsmeadarsh2008)
+
 </div>
+
+---
+
+## 🔐 Access
+
+Warper is available exclusively through **GitHub Sponsors**. Become a sponsor to get:
+
+- ✅ Full source code access
+- ✅ Commercial license for unlimited projects
+- ✅ Priority support
+- ✅ All future updates
+
+**[Become a Sponsor →](https://github.com/sponsors/itsmeadarsh2008)**
 
 ---
 
@@ -79,15 +96,30 @@
 
 ## 📦 Installation
 
+> **Note:** Warper is distributed via GitHub Packages. You must be a [GitHub Sponsor](https://github.com/sponsors/itsmeadarsh2008) to access the package.
+
+### 1. Configure npm for GitHub Packages
+
+Create or edit `~/.npmrc`:
+
 ```bash
-npm install warper
-# or
-yarn add warper
-# or
-pnpm add warper
-# or
-bun add warper
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+@warper-org:registry=https://npm.pkg.github.com
 ```
+
+### 2. Install the package
+
+```bash
+npm install @warper-org/warper
+# or
+yarn add @warper-org/warper
+# or
+pnpm add @warper-org/warper
+# or
+bun add @warper-org/warper
+```
+
+See [INSTALLATION.md](./INSTALLATION.md) for detailed setup instructions.
 
 ---
 
@@ -96,7 +128,7 @@ bun add warper
 ### Using the Hook (Recommended)
 
 ```tsx
-import { useVirtualizer } from 'warper';
+import { useVirtualizer } from '@warper-org/warper';
 
 function MyList() {
   const { scrollElementRef, range, totalHeight } = useVirtualizer({
@@ -131,7 +163,7 @@ function MyList() {
 ### Using the Component
 
 ```tsx
-import { WarperComponent } from 'warper';
+import { WarperComponent } from '@warper-org/warper';
 
 function MyList() {
   return (
@@ -140,7 +172,6 @@ function MyList() {
       estimateSize={() => 50}
       height={500}
       overscan={5}
-      showFPS  // Show FPS overlay (dev mode)
     >
       {(index) => (
         <div style={{ padding: 16 }}>
@@ -208,7 +239,6 @@ interface WarperComponentProps<T> {
   overscan?: number;
   height?: number | string;
   horizontal?: boolean;
-  showFPS?: boolean;
   className?: string;
   style?: CSSProperties;
   onRendered?: () => void;
@@ -315,15 +345,13 @@ Explore the repository to see Warper in action:
 
 ---
 
-## 🤝 Contributing
-
-Warper is open-source and we welcome contributions. Whether it's bug reports, feature requests, or code contributions, we'd love your help!
-
----
-
 ## 📜 License
 
-MIT © [Adarsh](https://github.com/itsmeadarsh2008)
+**Commercial License** — See [LICENSE](./LICENSE) for details.
+
+Warper is available through [GitHub Sponsors](https://github.com/sponsors/itsmeadarsh2008). Your sponsorship grants you a commercial license to use Warper in your projects.
+
+**Contact:** [e2vylu0d0@mozmail.com](mailto:e2vylu0d0@mozmail.com)
 
 ---
 
@@ -335,6 +363,6 @@ MIT © [Adarsh](https://github.com/itsmeadarsh2008)
 
 *Rust/WASM • 120+ FPS • Zero Allocation • O(1) & O(log n)*
 
-[GitHub](https://github.com/itsmeadarsh2008/warper) • [NPM](https://npmjs.com/package/warper)
+[GitHub](https://github.com/warper-org/warper) • [Sponsor](https://github.com/sponsors/itsmeadarsh2008)
 
 </div>
