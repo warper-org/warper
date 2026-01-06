@@ -1,0 +1,35 @@
+# Source files (not needed in package)
+*.ts
+!*.d.ts
+*.tsx
+index.ts
+
+# Examples
+examples/
+examples-dist/
+
+# Build configs
+vite.config.ts
+tsconfig.json
+*.config.ts
+
+# Development
+.github/
+.vscode/
+benchmark/
+*.md
+!README.md
+
+# Rust source (keep only pkg output)
+wasm/rust/src/
+wasm/rust/target/
+wasm/rust/Cargo.toml
+wasm/rust/Cargo.lock
+
+# Misc
+.gitignore
+.eslintrc*
+.prettierrc*
+copilot-instructions.md
+CONTRIBUTING.md
+INSTALLATION.md

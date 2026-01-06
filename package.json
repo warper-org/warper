@@ -1,6 +1,6 @@
 {
   "name": "@itsmeadarsh/warper",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "type": "module",
   "private": false,
   "description": "Ultra-fast React virtualization library - 120+ FPS, 10M+ items, powered by Rust/WASM",
@@ -10,8 +10,10 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "repository": {
@@ -52,9 +54,10 @@
   "scripts": {
     "dev": "vite",
     "build": "bun run build:wasm && tsc",
-    "build:wasm": "cd wasm/rust && wasm-pack build --target web --release",
-    "build:examples": "mkdir -p dist && cp examples/index.html dist/ && bun vite build --config examples/list/vite.config.ts --outDir ../../dist/list && bun vite build --config examples/grid/vite.config.ts --outDir ../../dist/grid && bun vite build --config examples/one-million-rows/vite.config.ts --outDir ../../dist/one-million-rows && bun vite build --config examples/chat/vite.config.ts --outDir ../../dist/chat && bun vite build --config examples/tree/vite.config.ts --outDir ../../dist/tree",
+    "build:wasm": "cd wasm/rust && wasm-pack build --target web --release && rm -f pkg/.gitignore",
+    "build:examples": "mkdir -p examples-dist && cp examples/index.html examples-dist/ && bun vite build --config examples/list/vite.config.ts --outDir ../../examples-dist/list && bun vite build --config examples/grid/vite.config.ts --outDir ../../examples-dist/grid && bun vite build --config examples/one-million-rows/vite.config.ts --outDir ../../examples-dist/one-million-rows && bun vite build --config examples/chat/vite.config.ts --outDir ../../examples-dist/chat && bun vite build --config examples/tree/vite.config.ts --outDir ../../examples-dist/tree",
     "build:all": "bun run build && bun run build:examples",
+    "prepublishOnly": "bun run build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "example:list": "vite --config examples/list/vite.config.ts",

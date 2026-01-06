@@ -17,10 +17,11 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "jsx": "react-jsx",
     "outDir": "./dist",
     "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
     "paths": {
       "warper": ["./index.ts"],
       "warper/*": ["./*"]
@@ -40,6 +41,9 @@
     "node_modules",
     "benchmark",
     "examples",
-    "dist"
+    "examples-dist",
+    "dist",
+    "vite.config.ts",
+    "*.config.ts"
   ]
 }
