@@ -1,18 +1,53 @@
 {
-  "name": "@warper-org/warper",
-  "version": "5.0.0-quantum",
+  "name": "warper",
+  "version": "5.0.0",
   "type": "module",
   "private": false,
-  "description": "⚡ Ultra-fast React virtualization library - 120+ FPS, 1M+ items, powered by Rust/WASM",
+  "description": "Ultra-fast React virtualization library - 120+ FPS, 10M+ items, powered by Rust/WASM",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/warper-org/warper.git"
   },
+  "homepage": "https://warper.tech",
+  "bugs": {
+    "url": "https://github.com/warper-org/warper/issues"
+  },
+  "keywords": [
+    "react",
+    "virtualization",
+    "virtual-list",
+    "virtual-scroll",
+    "wasm",
+    "webassembly",
+    "rust",
+    "performance",
+    "infinite-scroll",
+    "windowing"
+  ],
+  "author": "Adarsh",
+  "license": "MIT",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/itsmeadarsh2008"
+  },
+  "files": [
+    "dist",
+    "wasm/rust/pkg",
+    "README.md",
+    "LICENSE"
+  ],
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "access": "public"
   },
   "scripts": {
     "dev": "vite",
@@ -27,10 +62,6 @@
     "example:one-million-rows": "vite --config examples/one-million-rows/vite.config.ts",
     "example:chat": "vite --config examples/chat/vite.config.ts",
     "example:tree": "vite --config examples/tree/vite.config.ts"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
   },
   "peerDependencies": {
     "react": "^18.0.0",

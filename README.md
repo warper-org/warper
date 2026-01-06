@@ -1,134 +1,60 @@
-# ⚡ WARPER v5.0 QUANTUM ENGINE
+# Warper
 
 <div align="center">
 
-![Warper Banner](https://img.shields.io/badge/WARPER-QUANTUM-00ff88?style=for-the-badge&labelColor=0f0f1a)
-![Version](https://img.shields.io/badge/version-5.0.0-00d9ff?style=for-the-badge&labelColor=0f0f1a)
-![License](https://img.shields.io/badge/license-Commercial-ff6b6b?style=for-the-badge&labelColor=0f0f1a)
-![FPS](https://img.shields.io/badge/FPS-120+-ff3366?style=for-the-badge&labelColor=0f0f1a)
+[![npm version](https://img.shields.io/npm/v/warper?style=flat-square)](https://www.npmjs.com/package/warper)
+[![npm downloads](https://img.shields.io/npm/dm/warper?style=flat-square)](https://www.npmjs.com/package/warper)
+[![License](https://img.shields.io/github/license/warper-org/warper?style=flat-square)](./LICENSE)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/warper?style=flat-square)](https://bundlephobia.com/package/warper)
 
-### **Ultra-Fast React Virtualization Library**
+**Ultra-fast React virtualization library powered by Rust and WebAssembly**
 
-**10,000,000+ Rows • 120+ FPS • Zero Lag • Cross-Browser**
+10,000,000+ rows | 120+ FPS | O(1) lookups | Cross-browser
 
-*Powered by Rust + WebAssembly QUANTUM Engine*
-
-<br />
-
-[![Sponsor](https://img.shields.io/badge/Sponsor_on_GitHub-💜-ea4aaa?style=for-the-badge)](https://github.com/sponsors/itsmeadarsh2008)
+[Live Demo](https://warper-org.github.io/warper) | [Documentation](#api-reference) | [Examples](#examples)
 
 </div>
 
 ---
 
-## 🔐 Access
+## Features
 
-Warper is available exclusively through **GitHub Sponsors**. Become a sponsor to get:
-
-- ✅ Full source code access
-- ✅ Commercial license for unlimited projects
-- ✅ Priority support
-- ✅ All future updates
-
-**[Become a Sponsor →](https://github.com/sponsors/itsmeadarsh2008)**
-
----
-
-## ⚡ What's New in v5.0 QUANTUM
-
-- 🚀 **Complete Rust Rewrite** - New QUANTUM engine architecture
-- 🎯 **8x Loop Unrolling** - Maximized instruction throughput
-- 🔥 **Optimized Algorithms** - Minimal overhead in hot paths
-- 💾 **Cache-Line Aligned** - 64-byte alignment for optimal memory access
-- 🏎️ **Zero-Allocation Hot Path** - Pre-allocated memory pools
-- ⚡ **O(1) Uniform Operations** - Instant calculations for fixed-height items
-- 📊 **O(log n) Variable Sizes** - Fenwick tree for dynamic heights
+- **120+ FPS** - Smooth scrolling performance even with millions of items
+- **10M+ Items** - Handle massive datasets without breaking a sweat
+- **O(1) Uniform Operations** - Instant calculations for fixed-height items
+- **O(log n) Variable Sizes** - Fenwick tree for dynamic heights
+- **GPU Acceleration** - CSS `transform3d()` and `contain: strict`
+- **Zero-Copy Transfers** - Direct WASM-to-JS typed arrays
+- **Adaptive Overscan** - Smart prefetching based on scroll velocity
+- **Skip-Render Optimization** - Only re-render when range changes
+- **8x Loop Unrolling** - Maximum instruction throughput
+- **Pre-allocated Pools** - Zero allocation in scroll hot path
+- **Cross-Browser** - Chrome, Firefox, Safari, Edge support
+- **< 50KB Bundle** - Tree-shakable, minimal footprint
+- **TypeScript First** - Full type safety
 
 ---
 
-## 🏎️ QUANTUM Engine Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      ⚡ WARPER v5.0 QUANTUM ENGINE ⚡                    │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  CORE OPTIMIZATIONS:                                                    │
-│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐        │
-│  │  Optimized Ops   │ │  8x Unrolled     │ │  Cache-Line      │        │
-│  │  Minimal overhead│ │  Loop throughput │ │  64B alignment   │        │
-│  └──────────────────┘ └──────────────────┘ └──────────────────┘        │
-│                                                                         │
-│  DATA STRUCTURES:                                                       │
-│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐        │
-│  │  QuantumFenwick  │ │  QuantumPool     │ │  QuantumProfiler │        │
-│  │  O(log n) sums   │ │  Zero allocation │ │  O(1) statistics │        │
-│  └──────────────────┘ └──────────────────┘ └──────────────────┘        │
-│                                                                         │
-│  VIRTUALIZERS:                                                          │
-│  ┌──────────────────────────────┐ ┌──────────────────────────────┐     │
-│  │      QuantumUniform          │ │      QuantumVariable         │     │
-│  │  O(1) ALL operations         │ │  O(log n) with Fenwick tree  │     │
-│  └──────────────────────────────┘ └──────────────────────────────┘     │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## ✨ Features
-
-- 🚀 **120+ FPS** - Smooth scrolling performance
-- 💪 **10M+ Items** - Handle massive datasets effortlessly
-- ⚡ **O(1) Uniform Operations** - Instant calculations for fixed-height items
-- 📊 **O(log n) Variable Sizes** - Fenwick tree for dynamic heights
-- 🎮 **GPU Acceleration** - CSS `transform3d()` and `contain: strict`
-- 🔄 **Zero-Copy Transfers** - Direct WASM-to-JS typed arrays
-- 🎯 **Adaptive Overscan** - Smart prefetching based on scroll velocity
-- 🧠 **Skip-Render Optimization** - Only re-render when range changes
-- 🔥 **8x Loop Unrolling** - Maximum instruction throughput
-- 💾 **Pre-allocated Pools** - Zero allocation in scroll hot path
-- 🌐 **Cross-Browser** - Chrome, Firefox, Safari, Edge support
-- 📦 **< 50KB Bundle** - Tree-shakable, minimal footprint
-- 🔒 **TypeScript First** - Full type safety
-
----
-
-## 📦 Installation
-
-> **Note:** Warper is distributed via GitHub Packages. You must be a [GitHub Sponsor](https://github.com/sponsors/itsmeadarsh2008) to access the package.
-
-### 1. Configure npm for GitHub Packages
-
-Create or edit `~/.npmrc`:
+## Installation
 
 ```bash
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-@warper-org:registry=https://npm.pkg.github.com
+npm install warper
+# or
+yarn add warper
+# or
+pnpm add warper
+# or
+bun add warper
 ```
-
-### 2. Install the package
-
-```bash
-npm install @warper-org/warper
-# or
-yarn add @warper-org/warper
-# or
-pnpm add @warper-org/warper
-# or
-bun add @warper-org/warper
-```
-
-See [INSTALLATION.md](./INSTALLATION.md) for detailed setup instructions.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Using the Hook (Recommended)
 
 ```tsx
-import { useVirtualizer } from '@warper-org/warper';
+import { useVirtualizer } from 'warper';
 
 function MyList() {
   const { scrollElementRef, range, totalHeight } = useVirtualizer({
@@ -163,7 +89,7 @@ function MyList() {
 ### Using the Component
 
 ```tsx
-import { WarperComponent } from '@warper-org/warper';
+import { WarperComponent } from 'warper';
 
 function MyList() {
   return (
@@ -185,7 +111,7 @@ function MyList() {
 
 ---
 
-## 📖 API Reference
+## API Reference
 
 ### `useVirtualizer<T>(options)`
 
@@ -249,24 +175,7 @@ interface WarperComponentProps<T> {
 
 ---
 
-## ⚡ QUANTUM Performance Architecture
-
-### Key Optimizations
-
-1. **O(1) Uniform Sizes** - Pure arithmetic for fixed-height items
-2. **Fenwick Tree** - O(log n) prefix sums for variable heights
-3. **Binary Search** - Cache-friendly, predictable performance
-4. **8x Loop Unrolling** - Maximized instruction pipeline utilization
-5. **Zero-Copy Typed Arrays** - Direct WASM memory access, no serialization
-6. **Pre-allocated Pools** - Zero allocation in scroll hot path
-7. **Adaptive Overscan** - More items prefetched during fast scrolling
-8. **GPU Compositing** - CSS `transform3d()` for hardware acceleration
-9. **CSS Containment** - `contain: strict` isolates layout recalculations
-10. **Skip-Render** - React only updates when visible range changes
-
----
-
-## 🌐 Browser Support
+## Browser Support
 
 | Browser | Minimum Version |
 |---------|----------------|
@@ -286,25 +195,24 @@ Warper uses:
 
 ---
 
-## 📊 Feature Comparison
+## Comparison
 
-| Feature | Warper QUANTUM | react-window | react-virtuoso | @tanstack/virtual |
-|---------|----------------|--------------|----------------|-------------------|
-| WASM Core | ✅ | ❌ | ❌ | ❌ |
-| 10M+ Items | ✅ | ⚠️ | ⚠️ | ✅ |
-| 120+ FPS | ✅ | ✅ | ✅ | ✅ |
-| O(1) Fixed | ✅ | ❌ | ❌ | ❌ |
-| O(log n) Variable | ✅ | ❌ | ❌ | ❌ |
-| Zero-Copy Arrays | ✅ | ❌ | ❌ | ❌ |
-| 8x Loop Unrolling | ✅ | ❌ | ❌ | ❌ |
-| GPU Acceleration | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| Adaptive Overscan | ✅ | ❌ | ❌ | ❌ |
-| TypeScript | ✅ | ✅ | ✅ | ✅ |
+| Feature | Warper | react-window | react-virtuoso | @tanstack/virtual |
+|---------|--------|--------------|----------------|-------------------|
+| WASM Core | Yes | No | No | No |
+| 10M+ Items | Yes | Limited | Limited | Yes |
+| 120+ FPS | Yes | Yes | Yes | Yes |
+| O(1) Fixed | Yes | No | No | No |
+| O(log n) Variable | Yes | No | No | No |
+| Zero-Copy Arrays | Yes | No | No | No |
+| GPU Acceleration | Yes | Limited | Limited | Limited |
+| Adaptive Overscan | Yes | No | No | No |
+| TypeScript | Yes | Yes | Yes | Yes |
 | Bundle Size | ~45KB | ~6KB | ~25KB | ~12KB |
 
 ---
 
-## 🔧 Development
+## Development
 
 ```bash
 # Install dependencies
@@ -335,34 +243,42 @@ bun run build
 
 ---
 
-## 📂 Examples
+## Examples
 
 Explore the repository to see Warper in action:
 
-* **`/examples/list`** - A standard implementation of a virtualized list.
-* **`/examples/one-million-rows`** - The ultimate stress test with 1 million rows.
-* **`/examples/grid`** - Grid virtualization example.
+- [/examples/list](./examples/list) - Standard virtualized list implementation
+- [/examples/one-million-rows](./examples/one-million-rows) - Stress test with 1 million rows
+- [/examples/grid](./examples/grid) - Grid virtualization example
+- [/examples/chat](./examples/chat) - Chat interface with variable heights
+- [/examples/tree](./examples/tree) - Hierarchical tree view
 
 ---
 
-## 📜 License
+## Contributing
 
-**Commercial License** — See [LICENSE](./LICENSE) for details.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Warper is available through [GitHub Sponsors](https://github.com/sponsors/itsmeadarsh2008). Your sponsorship grants you a commercial license to use Warper in your projects.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-**Contact:** [e2vylu0d0@mozmail.com](mailto:e2vylu0d0@mozmail.com)
+---
+
+## License
+
+MIT License - see [LICENSE](./LICENSE) for details.
 
 ---
 
 <div align="center">
 
-**⚡ WARPER v5.0 QUANTUM ENGINE ⚡**
+**Warper** - Ultra-Fast React Virtualization
 
-*Ultra-Fast React Virtualization*
+Rust/WASM | 120+ FPS | O(1) & O(log n)
 
-*Rust/WASM • 120+ FPS • Zero Allocation • O(1) & O(log n)*
-
-[GitHub](https://github.com/warper-org/warper) • [Sponsor](https://github.com/sponsors/itsmeadarsh2008)
+[GitHub](https://github.com/warper-org/warper) | [npm](https://www.npmjs.com/package/warper) | [Documentation](#api-reference)
 
 </div>

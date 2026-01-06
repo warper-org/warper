@@ -2,15 +2,16 @@ name: Publish Package
 
 on:
   release:
-    types: [created]
+    types: [published]
   workflow_dispatch:
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
+    environment: npm
     permissions:
       contents: read
-      packages: write
+      id-token: write
     
     steps:
       - name: Checkout repository
@@ -42,10 +43,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@warper-org'
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Publish to GitHub Packages
-        run: npm publish
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
         env:
-          WARPER_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

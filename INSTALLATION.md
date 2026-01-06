@@ -1,57 +1,64 @@
 # Warper Installation Guide
 
-Warper is distributed as a private package through GitHub Packages. Only authorized sponsors have access.
+Warper is an open-source React virtualization library available on npm.
 
-## Prerequisites
-
-You must be a [GitHub Sponsor](https://github.com/sponsors/itsmeadarsh2008) to install this package.
-
-## Step 1: Create a Personal Access Token
-
-1. Go to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
-2. Click "Generate new token (classic)"
-3. Give it a name like "Warper Package Access"
-4. Select the `read:packages` scope
-5. Click "Generate token"
-6. **Copy the token** — you won't see it again!
-
-## Step 2: Configure npm/bun to use GitHub Packages
-
-Create or edit `~/.npmrc` in your home directory:
-
-```bash
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-@warper-org:registry=https://npm.pkg.github.com
-```
-
-Replace `YOUR_GITHUB_TOKEN` with your personal access token.
-
-**Alternative: Environment variable (recommended for CI/CD)**
-
-```bash
-export WARPER_AUTH_TOKEN=YOUR_GITHUB_TOKEN
-```
-
-## Step 3: Install Warper
+## Installation
 
 ```bash
 # Using npm
-npm install @warper-org/warper
-
-# Using bun
-bun add @warper-org/warper
+npm install warper
 
 # Using yarn
-yarn add @warper-org/warper
+yarn add warper
 
 # Using pnpm
-pnpm add @warper-org/warper
+pnpm add warper
+
+# Using bun
+bun add warper
 ```
 
-## Step 4: Usage
+## Quick Start
+
+### Using the Hook
 
 ```tsx
-import { WarperComponent } from '@warper-org/warper';
+import { useVirtualizer } from 'warper';
+
+function MyList() {
+  const { scrollElementRef, range, totalHeight } = useVirtualizer({
+    itemCount: 1_000_000,
+    estimateSize: () => 50,
+    overscan: 5,
+  });
+
+  return (
+    <div ref={scrollElementRef} style={{ height: 500, overflow: 'auto' }}>
+      <div style={{ height: totalHeight, position: 'relative' }}>
+        {range.items.map((index, i) => (
+          <div
+            key={index}
+            style={{
+              position: 'absolute',
+              top: 0,
+              transform: `translateY(${range.offsets[i]}px)`,
+              height: range.sizes[i],
+              width: '100%',
+            }}
+          >
+            Row {index}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### Using the Component
+
+```tsx
+import { WarperComponent } from 'warper';
 
 function App() {
   return (
@@ -66,19 +73,27 @@ function App() {
 }
 ```
 
-## Troubleshooting
+## Peer Dependencies
 
-### Error: 401 Unauthorized
+Warper requires React 18+:
 
-- Ensure your GitHub token has the `read:packages` scope
-- Verify you're an active sponsor at [github.com/sponsors/itsmeadarsh2008](https://github.com/sponsors/itsmeadarsh2008)
-- Check that your `.npmrc` file is correctly configured
+```json
+{
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}
+```
 
-### Error: 404 Not Found
+## Browser Support
 
-- Make sure the package scope is correct: `@warper-org/warper`
-- Verify the registry URL in your `.npmrc`
+- Chrome 89+
+- Firefox 89+
+- Safari 15+
+- Edge 89+
 
 ## Support
 
-For questions or issues, contact: [e2vylu0d0@mozmail.com](mailto:e2vylu0d0@mozmail.com)
+- [GitHub Issues](https://github.com/warper-org/warper/issues)
+- [Documentation](https://github.com/warper-org/warper#readme)
