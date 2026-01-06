@@ -2,10 +2,10 @@
 
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/warper?style=flat-square)](https://www.npmjs.com/package/warper)
-[![npm downloads](https://img.shields.io/npm/dm/warper?style=flat-square)](https://www.npmjs.com/package/warper)
+[![npm version](https://img.shields.io/npm/v/@itsmeadarsh/warper?style=flat-square)](https://www.npmjs.com/package/@itsmeadarsh/warper)
+[![npm downloads](https://img.shields.io/npm/dm/@itsmeadarsh/warper?style=flat-square)](https://www.npmjs.com/package/@itsmeadarsh/warper)
 [![License](https://img.shields.io/github/license/warper-org/warper?style=flat-square)](./LICENSE)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/warper?style=flat-square)](https://bundlephobia.com/package/warper)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@itsmeadarsh/warper?style=flat-square)](https://bundlephobia.com/package/@itsmeadarsh/warper)
 
 **Ultra-fast React virtualization library powered by Rust and WebAssembly**
 
@@ -38,13 +38,13 @@
 ## Installation
 
 ```bash
-npm install warper
+npm install @itsmeadarsh/warper
 # or
-yarn add warper
+yarn add @itsmeadarsh/warper
 # or
-pnpm add warper
+pnpm add @itsmeadarsh/warper
 # or
-bun add warper
+bun add @itsmeadarsh/warper
 ```
 
 ---
@@ -54,7 +54,7 @@ bun add warper
 ### Using the Hook (Recommended)
 
 ```tsx
-import { useVirtualizer } from 'warper';
+import { useVirtualizer } from '@itsmeadarsh/warper';
 
 function MyList() {
   const { scrollElementRef, range, totalHeight } = useVirtualizer({
@@ -89,7 +89,7 @@ function MyList() {
 ### Using the Component
 
 ```tsx
-import { WarperComponent } from 'warper';
+import { WarperComponent } from '@itsmeadarsh/warper';
 
 function MyList() {
   return (
@@ -279,6 +279,6 @@ MIT License - see [LICENSE](./LICENSE) for details.
 
 Rust/WASM | 120+ FPS | O(1) & O(log n)
 
-[GitHub](https://github.com/warper-org/warper) | [npm](https://www.npmjs.com/package/warper) | [Documentation](#api-reference)
+[GitHub](https://github.com/warper-org/warper) | [npm](https://www.npmjs.com/package/@itsmeadarsh/warper) | [Documentation](#api-reference)
 
 </div>

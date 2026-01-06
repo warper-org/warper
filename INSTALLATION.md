@@ -6,16 +6,16 @@ Warper is an open-source React virtualization library available on npm.
 
 ```bash
 # Using npm
-npm install warper
+npm install @itsmeadarsh/warper
 
 # Using yarn
-yarn add warper
+yarn add @itsmeadarsh/warper
 
 # Using pnpm
-pnpm add warper
+pnpm add @itsmeadarsh/warper
 
 # Using bun
-bun add warper
+bun add @itsmeadarsh/warper
 ```
 
 ## Quick Start
@@ -23,7 +23,7 @@ bun add warper
 ### Using the Hook
 
 ```tsx
-import { useVirtualizer } from 'warper';
+import { useVirtualizer } from '@itsmeadarsh/warper';
 
 function MyList() {
   const { scrollElementRef, range, totalHeight } = useVirtualizer({
@@ -58,7 +58,7 @@ function MyList() {
 ### Using the Component
 
 ```tsx
-import { WarperComponent } from 'warper';
+import { WarperComponent } from '@itsmeadarsh/warper';
 
 function App() {
   return (
