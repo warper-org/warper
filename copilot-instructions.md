@@ -14,7 +14,7 @@ You are building **Warper**, a next-generation open-source React virtualization 
 * Built-in SSR + SEO support
 * 100% **TypeScript**, highly developer-friendly
 * Works **out of the box** with **zero config**
-* Core library size under **50KB** (tree-shakable)
+* Core library size **~6KB** gzipped (19.1kB minified, tree-shakable)
 
 ---
 
@@ -169,7 +169,7 @@ warper/
 | ------------------------- | -------------------------------------- |
 | Scroll FPS                | 60–120 fps                             |
 | Initial Render (10k rows) | < 10ms                                 |
-| Bundle Size               | < 50KB (tree-shakable)                 |
+| Bundle Size               | ~6KB gzipped (19.1kB minified)         |
 | Memory Usage              | 40% less than react-virtualized        |
 | Items Rendered            | 1M+ handled with no lag or crash       |
 | Comparative Benchmarks    | 2× faster than react-window under load |

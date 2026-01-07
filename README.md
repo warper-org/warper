@@ -30,7 +30,7 @@
 - **8x Loop Unrolling** - Maximum instruction throughput
 - **Pre-allocated Pools** - Zero allocation in scroll hot path
 - **Cross-Browser** - Chrome, Firefox, Safari, Edge support
-- **< 50KB Bundle** - Tree-shakable, minimal footprint
+- **~6KB Bundle** - Tree-shakable, minimal footprint (5.9kB gzipped)
 - **TypeScript First** - Full type safety
 
 ---
@@ -208,7 +208,7 @@ Warper uses:
 | GPU Acceleration | Yes | Limited | Limited | Limited |
 | Adaptive Overscan | Yes | No | No | No |
 | TypeScript | Yes | Yes | Yes | Yes |
-| Bundle Size | ~45KB | ~6KB | ~25KB | ~12KB |
+| Bundle Size | ~6KB | ~6KB | ~25KB | ~12KB |
 
 ---
 
