@@ -8,7 +8,7 @@
   
   <!-- Primary Meta Tags -->
   <meta name="title" content="Warper - Ultra-Fast React Virtualization Library | WASM-Powered">
-  <meta name="description" content="The fastest React virtualization library. Render 10M+ items at 120+ FPS with WebAssembly-powered performance. Built with Rust. Only ~6KB gzipped. Open source MIT license.">
+  <meta name="description" content="The fastest React virtualization library. Render 10M+ items at 120+ FPS with WebAssembly-powered performance. Built with Rust. Only ~8.7KB gzipped. Open source MIT license.">
   <meta name="keywords" content="react virtualization, virtual list, react virtual scroll, wasm react, webassembly react, rust wasm, infinite scroll react, react window alternative, react virtualized alternative, tanstack virtual alternative, high performance react, million rows react, fps react, virtual dom optimization">
   <meta name="author" content="Warper Team">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -26,7 +26,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://warper-org.github.io/warper/">
   <meta property="og:title" content="Warper - Ultra-Fast React Virtualization | 10M+ Rows at 120 FPS">
-  <meta property="og:description" content="The fastest React virtualization library. Render millions of items with WebAssembly-powered performance. Built with Rust. Only ~6KB gzipped.">
+  <meta property="og:description" content="The fastest React virtualization library. Render millions of items with WebAssembly-powered performance. Built with Rust. Only ~8.7KB gzipped.">
   <meta property="og:image" content="https://warper-org.github.io/warper/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -37,7 +37,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://warper-org.github.io/warper/">
   <meta name="twitter:title" content="Warper - Ultra-Fast React Virtualization | WASM-Powered">
-  <meta name="twitter:description" content="Render 10M+ items at 120+ FPS. Powered by Rust and WebAssembly. Only ~6KB gzipped.">
+  <meta name="twitter:description" content="Render 10M+ items at 120+ FPS. Powered by Rust and WebAssembly. Only ~8.7KB gzipped.">
   <meta name="twitter:image" content="https://warper-org.github.io/warper/og-image.png">
   <meta name="twitter:creator" content="@warper_org">
   
@@ -49,10 +49,10 @@
     "name": "Warper",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Web Browser",
-    "description": "Ultra-fast React virtualization library powered by Rust and WebAssembly. Render 10M+ items at 120+ FPS with O(1) lookups. Only ~6KB gzipped.",
+    "description": "Ultra-fast React virtualization library powered by Rust and WebAssembly. Render 10M+ items at 120+ FPS with O(1) lookups. Only ~8.7KB gzipped.",
     "url": "https://warper-org.github.io/warper/",
     "downloadUrl": "https://www.npmjs.com/package/@itsmeadarsh/warper",
-    "softwareVersion": "7.0.0",
+    "softwareVersion": "7.2.0",
     "author": {
       "@type": "Organization",
       "name": "Warper Team",
@@ -74,7 +74,7 @@
       "120+ FPS smooth scrolling",
       "10M+ items support",
       "O(1) constant-time lookups",
-      "~6KB gzipped bundle size",
+      "~8.7KB gzipped bundle size",
       "WebAssembly powered",
       "Built with Rust",
       "GPU accelerated rendering",
@@ -89,7 +89,7 @@
   <meta name="ai-content-declaration" content="human-created">
   <meta name="library-type" content="React virtualization">
   <meta name="technology-stack" content="React, TypeScript, Rust, WebAssembly">
-  <meta name="performance-metrics" content="120+ FPS, 10M+ items, O(1) lookups, ~6KB gzipped">
+  <meta name="performance-metrics" content="120+ FPS, 10M+ items, O(1) lookups, ~8.7KB gzipped">
   
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -890,6 +890,54 @@ function VirtualList() {
       font-weight: 700;
       color: var(--text-muted);
       letter-spacing: -0.5px;
+    }
+
+    /* ===== WHAT'S NEW SECTION ===== */
+    .whats-new {
+      padding: 100px 24px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+    }
+
+    .whats-new-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .whats-new-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .whats-new-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .whats-new-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .whats-new-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .whats-new-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      margin: 0;
     }
 
     /* ===== FEATURES SECTION ===== */
@@ -2172,7 +2220,7 @@ function VirtualList() {
         <div class="hero-metric-label">Lookups</div>
       </div>
       <div class="hero-metric">
-        <div class="hero-metric-value">~6KB</div>
+        <div class="hero-metric-value">~8.7KB</div>
         <div class="hero-metric-label">Gzipped</div>
       </div>
     </div>
@@ -2203,6 +2251,51 @@ function VirtualList() {
       <span class="trusted-logo">Linear</span>
       <span class="trusted-logo">Notion</span>
       <span class="trusted-logo">Figma</span>
+    </div>
+  </section>
+
+  <!-- What's New Section -->
+  <section class="whats-new" id="whats-new">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-eyebrow">What's New</div>
+        <h2 class="section-title">v7.2 Release</h2>
+        <p class="section-subtitle">
+          Performance optimizations and universal bundler compatibility
+        </p>
+      </div>
+      <div class="whats-new-grid">
+        <div class="whats-new-card">
+          <div class="whats-new-icon">⚡</div>
+          <h3>Zero-Allocation Hot Paths</h3>
+          <p>TypedArrays (Int32Array, Float64Array) replace regular arrays for zero GC pressure during scrolling</p>
+        </div>
+        <div class="whats-new-card">
+          <div class="whats-new-icon">🔄</div>
+          <h3>O(1) Circular Buffers</h3>
+          <p>Replaced push()/shift() with constant-time circular buffer operations for frame timing</p>
+        </div>
+        <div class="whats-new-card">
+          <div class="whats-new-icon">📊</div>
+          <h3>Enhanced Benchmarks</h3>
+          <p>Score levels from Outstanding to Poor with emoji indicators for intuitive performance assessment</p>
+        </div>
+        <div class="whats-new-card">
+          <div class="whats-new-icon">📦</div>
+          <h3>Universal Bundler Support</h3>
+          <p>Works with Vite, Webpack, Rollup, esbuild, Parcel, and Next.js out of the box</p>
+        </div>
+        <div class="whats-new-card">
+          <div class="whats-new-icon">📱</div>
+          <h3>Responsive Examples</h3>
+          <p>All demo examples now fully responsive for mobile, tablet, and desktop viewports</p>
+        </div>
+        <div class="whats-new-card">
+          <div class="whats-new-icon">🤖</div>
+          <h3>Context7 MCP Ready</h3>
+          <p>Use AI assistants with Context7 MCP for intelligent help with Warper integration</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2309,7 +2402,7 @@ function VirtualList() {
           </p>
           <div class="benchmark-stats">
             <div class="benchmark-stat">
-              <div class="benchmark-stat-value">~6KB</div>
+              <div class="benchmark-stat-value">~8.7KB</div>
               <div class="benchmark-stat-label">Gzipped Bundle</div>
             </div>
             <div class="benchmark-stat">
@@ -2499,7 +2592,7 @@ function VirtualList() {
           <tbody>
             <tr class="highlight">
               <td>Bundle Size (gzip)</td>
-              <td><strong>~6KB</strong></td>
+              <td><strong>~8.7KB</strong></td>
               <td>~6KB</td>
               <td>~25KB</td>
               <td>~12KB</td>

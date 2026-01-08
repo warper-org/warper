@@ -30,7 +30,7 @@
 - **8x Loop Unrolling** - Maximum instruction throughput
 - **Pre-allocated Pools** - Zero allocation in scroll hot path
 - **Cross-Browser** - Chrome, Firefox, Safari, Edge support
-- **~6KB Bundle** - Tree-shakable, minimal footprint (5.9kB gzipped)
+- **~8.7KB Bundle** - Tree-shakable, minimal footprint (8.7kB gzipped)
 - **TypeScript First** - Full type safety
 
 ---
