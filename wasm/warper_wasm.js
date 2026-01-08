@@ -110,14 +110,26 @@ export function init() {
 }
 
 /**
+ * Benchmark variable virtualizer - returns ops/second
+ * @param {number} count
+ * @param {number} iterations
+ * @returns {number}
+ */
+export function bench_variable(count, iterations) {
+    const ret = wasm.bench_variable(count, iterations);
+    return ret;
+}
+
+/**
+ * Run full benchmark suite - returns formatted results
  * @returns {string}
  */
-export function get_version() {
+export function run_benchmarks() {
     let deferred1_0;
     let deferred1_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_version(retptr);
+        wasm.run_benchmarks(retptr);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         deferred1_0 = r0;
@@ -127,17 +139,6 @@ export function get_version() {
         wasm.__wbindgen_add_to_stack_pointer(16);
         wasm.__wbindgen_export_1(deferred1_0, deferred1_1, 1);
     }
-}
-
-/**
- * Benchmark variable virtualizer - returns ops/second
- * @param {number} count
- * @param {number} iterations
- * @returns {number}
- */
-export function bench_variable(count, iterations) {
-    const ret = wasm.bench_variable(count, iterations);
-    return ret;
 }
 
 /**
@@ -152,15 +153,14 @@ export function bench_uniform(count, iterations) {
 }
 
 /**
- * Run full benchmark suite - returns formatted results
  * @returns {string}
  */
-export function run_benchmarks() {
+export function get_version() {
     let deferred1_0;
     let deferred1_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.run_benchmarks(retptr);
+        wasm.get_version(retptr);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         deferred1_0 = r0;

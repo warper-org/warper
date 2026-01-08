@@ -1,5 +1,5 @@
 /**
- * ⚡ WARPER v6.0 QUANTUM ⚡
+ * ⚡ WARPER v7.0 QUANTUM ⚡
  * The World's Fastest Virtualization Library
  * 
  * Powered by WebAssembly with:

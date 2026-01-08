@@ -267,6 +267,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
+## AI Assistance
+
+Need help with Warper? You can use **Context7 MCP** to get up-to-date documentation and code examples directly in your AI coding assistant. Context7 provides real-time access to Warper's API reference and usage patterns.
+
+---
+
 ## License
 
 MIT License - see [LICENSE](./LICENSE) for details.

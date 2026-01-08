@@ -5,7 +5,7 @@
     "Warper Team"
   ],
   "description": "Ultra-fast WASM Virtualization Engine - QUANTUM 120+ FPS",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "license": "MIT",
   "files": [
     "warper_wasm_bg.wasm",

@@ -1,5 +1,5 @@
 /**
- * ⚡ WARPER v6.0 QUANTUM useVirtualizer ⚡
+ * ⚡ WARPER v7.0 QUANTUM useVirtualizer ⚡
  * 
  * Ultra-fast React virtualization hook - 120+ FPS ENGINE
  * RAF-throttled updates, zero-allocation hot path, minimal React overhead

@@ -10,6 +10,27 @@ import {
 } from '../../index';
 
 // ============================================================================
+// RESPONSIVE HOOK
+// ============================================================================
+
+function useResponsive() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return {
+    isMobile: width < 480,
+    isTablet: width >= 480 && width < 768,
+    isDesktop: width >= 768,
+    width,
+  };
+}
+
+// ============================================================================
 // STYLES
 // ============================================================================
 
@@ -199,8 +220,34 @@ const TYPE_COLORS: Record<string, string> = {
   bridge: '#f97316',
 };
 
-const FastRow = React.memo(function FastRow({ index }: { index: number }) {
+const FastRow = React.memo(function FastRow({ index, isMobile }: { index: number; isMobile?: boolean }) {
   const tx = generateTransaction(index);
+  
+  if (isMobile) {
+    return (
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 80px 80px',
+        alignItems: 'center',
+        padding: '0 12px',
+        borderBottom: '1px solid #1a1a24',
+        fontSize: '11px',
+        height: '100%',
+        boxSizing: 'border-box' as const,
+        color: '#e4e4e7',
+        gap: '8px',
+      }}>
+        <div style={{ ...styles.cell, color: TYPE_COLORS[tx.type] || '#71717a' }}>{tx.type}</div>
+        <div style={styles.cell}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <span style={DOT_STYLES[tx.status]} />
+            <span style={{ fontSize: '10px' }}>{tx.status}</span>
+          </span>
+        </div>
+        <div style={{ ...styles.cell, color: '#00d4aa', fontSize: '10px' }}>{tx.amount.toFixed(2)}</div>
+      </div>
+    );
+  }
   
   return (
     <div style={styles.row}>
@@ -225,6 +272,7 @@ const FastRow = React.memo(function FastRow({ index }: { index: number }) {
 // ============================================================================
 
 function StressTest() {
+  const { isMobile, isDesktop } = useResponsive();
   const [rowCount, setRowCount] = useState(1000000);
   const [rowCountInput, setRowCountInput] = useState('1000000');
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
@@ -308,56 +356,75 @@ function StressTest() {
     }
   }, [rowCountInput]);
 
-  const presets = [
-    { label: '100K', value: 100000 },
-    { label: '1M', value: 1000000 },
-    { label: '5M', value: 5000000 },
-    { label: '10M', value: 10000000 },
-  ];
+  const presets = isMobile
+    ? [
+        { label: '100K', value: 100000 },
+        { label: '1M', value: 1000000 },
+      ]
+    : [
+        { label: '100K', value: 100000 },
+        { label: '1M', value: 1000000 },
+        { label: '5M', value: 5000000 },
+        { label: '10M', value: 10000000 },
+      ];
 
   const renderRow = useCallback((index: number) => (
-    <FastRow index={index} />
-  ), []);
+    <FastRow index={index} isMobile={isMobile} />
+  ), [isMobile]);
 
   return (
     <div style={styles.container}>
       {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.title}>
+      <div style={{ ...styles.header, padding: isMobile ? '10px 12px' : '12px 20px' }}>
+        <div style={{ ...styles.title, fontSize: isMobile ? '12px' : '14px' }}>
           <span style={{ color: '#ef4444' }}>[</span>
           stress_test
           <span style={{ color: '#ef4444' }}>]</span>
           <span style={{ color: '#52525b', marginLeft: '8px' }}>
-            {rowCount.toLocaleString()} transactions
+            {rowCount.toLocaleString()}{isMobile ? '' : ' transactions'}
           </span>
         </div>
-        <PerformanceMonitor metrics={metrics} />
+        {isDesktop && <PerformanceMonitor metrics={metrics} />}
       </div>
       
       {/* Table Header */}
       <div style={{ 
         ...styles.list, 
         flex: 'none', 
-        margin: '16px 20px 0', 
+        margin: isMobile ? '12px 12px 0' : '16px 20px 0', 
         borderRadius: '8px 8px 0 0',
         marginBottom: 0,
       }}>
         <div style={{ 
-          ...styles.row, 
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr 80px 80px' : '70px 1fr 1fr 80px 90px 100px 80px',
+          alignItems: 'center',
+          padding: isMobile ? '0 12px' : '0 16px',
           background: '#0a0a0f', 
           color: '#71717a', 
           fontSize: '9px', 
           textTransform: 'uppercase', 
           letterSpacing: '0.5px', 
           height: '36px',
+          gap: '8px',
         }}>
-          <div style={styles.cell}>#</div>
-          <div style={styles.cell}>tx_hash</div>
-          <div style={styles.cell}>timestamp</div>
-          <div style={styles.cell}>type</div>
-          <div style={styles.cell}>status</div>
-          <div style={styles.cell}>amount</div>
-          <div style={styles.cell}>gas</div>
+          {isMobile ? (
+            <>
+              <div style={styles.cell}>type</div>
+              <div style={styles.cell}>status</div>
+              <div style={styles.cell}>amount</div>
+            </>
+          ) : (
+            <>
+              <div style={styles.cell}>#</div>
+              <div style={styles.cell}>tx_hash</div>
+              <div style={styles.cell}>timestamp</div>
+              <div style={styles.cell}>type</div>
+              <div style={styles.cell}>status</div>
+              <div style={styles.cell}>amount</div>
+              <div style={styles.cell}>gas</div>
+            </>
+          )}
         </div>
       </div>
       
@@ -368,6 +435,7 @@ function StressTest() {
         borderRadius: '0 0 8px 8px', 
         borderTop: 'none',
         marginBottom: '80px',
+        margin: isMobile ? '0 12px 80px' : undefined,
       }}>
         <WarperComponent
           ref={warperRef}
@@ -382,7 +450,14 @@ function StressTest() {
       </div>
       
       {/* Floating Control Panel */}
-      <div style={styles.floatingPanel}>
+      <div style={{
+        ...styles.floatingPanel,
+        padding: isMobile ? '10px 14px' : '12px 20px',
+        gap: isMobile ? '10px' : '16px',
+        flexWrap: 'wrap' as const,
+        maxWidth: isMobile ? 'calc(100% - 24px)' : undefined,
+        justifyContent: 'center',
+      }}>
         {presets.map((preset) => (
           <button
             key={preset.value}
@@ -399,30 +474,34 @@ function StressTest() {
           </button>
         ))}
         
-        <div style={styles.divider} />
-        
-        <div style={styles.controlGroup}>
-          <span style={styles.label}>rows</span>
-          <input
-            type="text"
-            value={rowCountInput}
-            onChange={(e) => setRowCountInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && applyRowCount()}
-            onBlur={applyRowCount}
-            style={styles.input}
-          />
-        </div>
-        
-        <select
-          value={scrollPattern}
-          onChange={(e) => setScrollPattern(e.target.value as any)}
-          style={styles.select}
-        >
-          <option value="smooth">smooth</option>
-          <option value="jump">jump</option>
-          <option value="random">random</option>
-          <option value="bounce">bounce</option>
-        </select>
+        {isDesktop && (
+          <>
+            <div style={styles.divider} />
+            
+            <div style={styles.controlGroup}>
+              <span style={styles.label}>rows</span>
+              <input
+                type="text"
+                value={rowCountInput}
+                onChange={(e) => setRowCountInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && applyRowCount()}
+                onBlur={applyRowCount}
+                style={styles.input}
+              />
+            </div>
+            
+            <select
+              value={scrollPattern}
+              onChange={(e) => setScrollPattern(e.target.value as any)}
+              style={styles.select}
+            >
+              <option value="smooth">smooth</option>
+              <option value="jump">jump</option>
+              <option value="random">random</option>
+              <option value="bounce">bounce</option>
+            </select>
+          </>
+        )}
         
         <button
           onClick={() => setIsAutoScrolling(!isAutoScrolling)}

@@ -1,5 +1,5 @@
 /**
- * ⚡ WARPER v6.0 BLAZING WarperComponent ⚡
+ * ⚡ WARPER v7.0 BLAZING WarperComponent ⚡
  * 
  * Ultra-fast Virtualized List Component - 120+ FPS ENGINE
  * Minimal allocations, GPU-accelerated transforms, optimized rendering

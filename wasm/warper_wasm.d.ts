@@ -5,19 +5,19 @@
  */
 export function bench_fenwick(count: number, iterations: number): number;
 export function init(): void;
-export function get_version(): string;
 /**
  * Benchmark variable virtualizer - returns ops/second
  */
 export function bench_variable(count: number, iterations: number): number;
 /**
- * Benchmark uniform virtualizer - returns ops/second
- */
-export function bench_uniform(count: number, iterations: number): number;
-/**
  * Run full benchmark suite - returns formatted results
  */
 export function run_benchmarks(): string;
+/**
+ * Benchmark uniform virtualizer - returns ops/second
+ */
+export function bench_uniform(count: number, iterations: number): number;
+export function get_version(): string;
 /**
  * Ultra-optimized Fenwick Tree (Binary Indexed Tree)
  * Features:

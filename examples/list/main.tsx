@@ -128,6 +128,26 @@ const styles = {
 };
 
 // ============================================================================
+// RESPONSIVE HOOK
+// ============================================================================
+function useResponsive() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return {
+    isMobile: width < 480,
+    isTablet: width >= 480 && width < 768,
+    isDesktop: width >= 768,
+    width,
+  };
+}
+
+// ============================================================================
 // DATA GENERATION
 // ============================================================================
 
@@ -176,9 +196,33 @@ const DEPT_COLORS: Record<string, string> = {
 // ROW COMPONENT
 // ============================================================================
 
-const FastEmployeeRow = React.memo(function FastEmployeeRow({ index }: { index: number }) {
+const FastEmployeeRow = React.memo(function FastEmployeeRow({ index, isMobile }: { index: number; isMobile?: boolean }) {
   const emp = generateEmployee(index);
   const perfColor = emp.performance >= 90 ? '#00d4aa' : emp.performance >= 75 ? '#eab308' : '#ef4444';
+  
+  if (isMobile) {
+    return (
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr 80px',
+        alignItems: 'center',
+        padding: '0 12px',
+        borderBottom: '1px solid #1a1a24',
+        fontSize: '12px',
+        height: '100%',
+        boxSizing: 'border-box',
+        color: '#e4e4e7',
+        gap: '8px',
+      }}>
+        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</div>
+        <div style={{ color: '#a1a1aa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.email}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span style={DOT_STYLES[emp.status]} />
+          <span style={{ fontSize: '11px' }}>{emp.status}</span>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div style={{
@@ -212,6 +256,7 @@ const FastEmployeeRow = React.memo(function FastEmployeeRow({ index }: { index: 
 // ============================================================================
 
 function DataTable() {
+  const { isMobile, isDesktop } = useResponsive();
   const [rowCount, setRowCount] = useState(100000);
   const [rowCountInput, setRowCountInput] = useState('100000');
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
@@ -290,16 +335,18 @@ function DataTable() {
     }
   }, [rowCountInput]);
 
-  const presets = [
-    { label: '10K', value: 10000 },
-    { label: '100K', value: 100000 },
-    { label: '500K', value: 500000 },
-    { label: '1M', value: 1000000 },
-  ];
+  const presets = isMobile 
+    ? [{ label: '10K', value: 10000 }, { label: '100K', value: 100000 }]
+    : [
+        { label: '10K', value: 10000 },
+        { label: '100K', value: 100000 },
+        { label: '500K', value: 500000 },
+        { label: '1M', value: 1000000 },
+      ];
 
   const renderRow = useCallback((index: number) => (
-    <FastEmployeeRow index={index} />
-  ), []);
+    <FastEmployeeRow index={index} isMobile={isMobile} />
+  ), [isMobile]);
 
   return (
     <div style={styles.container}>
@@ -310,23 +357,23 @@ function DataTable() {
           data_table
           <span style={{ color: '#00d4aa' }}>]</span>
           <span style={{ color: '#52525b', marginLeft: '8px' }}>
-            {rowCount.toLocaleString()} records
+            {rowCount.toLocaleString()} {isMobile ? '' : 'records'}
           </span>
         </div>
-        <PerformanceMonitor metrics={metrics} />
+        {isDesktop && <PerformanceMonitor metrics={metrics} />}
       </div>
       
       {/* Table Header */}
       <div style={{ 
         ...styles.list, 
         flex: 'none', 
-        margin: '16px 20px 0',
+        margin: isMobile ? '8px 12px 0' : '16px 20px 0',
         borderRadius: '8px 8px 0 0',
         marginBottom: 0,
       }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '100px 140px 1fr 100px 80px 100px 80px',
+          gridTemplateColumns: isMobile ? '80px 1fr 80px' : '100px 140px 1fr 100px 80px 100px 80px',
           alignItems: 'center',
           padding: '0 16px',
           background: '#0a0a0f',
@@ -337,13 +384,23 @@ function DataTable() {
           height: '40px',
           gap: '8px',
         }}>
-          <div>id</div>
-          <div>name</div>
-          <div>email</div>
-          <div>dept</div>
-          <div>status</div>
-          <div>salary</div>
-          <div>perf</div>
+          {isMobile ? (
+            <>
+              <div>name</div>
+              <div>email</div>
+              <div>status</div>
+            </>
+          ) : (
+            <>
+              <div>id</div>
+              <div>name</div>
+              <div>email</div>
+              <div>dept</div>
+              <div>status</div>
+              <div>salary</div>
+              <div>perf</div>
+            </>
+          )}
         </div>
       </div>
       
@@ -354,6 +411,7 @@ function DataTable() {
         borderRadius: '0 0 8px 8px', 
         borderTop: 'none',
         marginBottom: '80px',
+        margin: isMobile ? '0 12px 80px' : undefined,
       }}>
         <WarperComponent
           ref={warperRef}
@@ -368,7 +426,14 @@ function DataTable() {
       </div>
       
       {/* Floating Control Panel */}
-      <div style={styles.floatingPanel}>
+      <div style={{
+        ...styles.floatingPanel,
+        padding: isMobile ? '10px 14px' : '12px 20px',
+        gap: isMobile ? '10px' : '16px',
+        flexWrap: 'wrap' as const,
+        maxWidth: isMobile ? 'calc(100% - 24px)' : undefined,
+        justifyContent: 'center',
+      }}>
         {presets.map((preset) => (
           <button
             key={preset.value}

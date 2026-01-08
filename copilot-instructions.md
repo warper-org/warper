@@ -215,3 +215,9 @@ The AI should:
 * Organize code per the structure
 * Include debug overlay and SSR strategy
 * Follow ultra-performance best practices
+
+---
+
+### 🤖 AI Assistance with Context7
+
+For up-to-date documentation and code examples, use **Context7 MCP** in your AI coding assistant. Context7 provides real-time access to Warper's latest API reference, usage patterns, and best practices directly in your development workflow.

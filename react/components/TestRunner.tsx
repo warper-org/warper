@@ -1,5 +1,5 @@
 /**
- * ⚡ WARPER v5.0 TestRunner Component ⚡
+ * ⚡ WARPER v7.0 TestRunner Component ⚡
  * 
  * One-time benchmark test mode with metrics, completion tracking, and ETA
  * Designed for validating virtualization performance across all browsers
