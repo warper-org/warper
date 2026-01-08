@@ -11,24 +11,29 @@
  * ✓ 8x loop unrolling in hot paths
  * ✓ Branchless algorithms
  * ✓ Cross-browser compatibility (Chrome, Firefox, Safari, Edge)
+ * ✓ Async splitpoint for bundle optimization
  */
 
-import wasmInit, {
-  QuantumVariable,
-  QuantumUniform,
-  QuantumFenwick,
-  QuantumProfiler,
-  VirtualItem,
-  VirtualRangeResult,
-  get_version,
-  bench_fenwick,
-  bench_uniform,
-  bench_variable,
-  run_benchmarks,
+// Types are imported for TypeScript but don't cause bundling issues
+import type {
+  QuantumVariable as QuantumVariableType,
+  QuantumUniform as QuantumUniformType,
+  QuantumFenwick as QuantumFenwickType,
+  QuantumProfiler as QuantumProfilerType,
+  VirtualItem as VirtualItemType,
+  VirtualRangeResult as VirtualRangeResultType,
 } from '../wasm/warper_wasm.js';
 
-// Import WASM binary URL for Vite
-import wasmUrl from '../wasm/warper_wasm_bg.wasm?url';
+// Re-export types
+export type QuantumVariable = QuantumVariableType;
+export type QuantumUniform = QuantumUniformType;
+export type QuantumFenwick = QuantumFenwickType;
+export type QuantumProfiler = QuantumProfilerType;
+export type VirtualItem = VirtualItemType;
+export type VirtualRangeResult = VirtualRangeResultType;
+
+// WASM module reference - loaded dynamically
+let wasmModule: typeof import('../wasm/warper_wasm.js') | null = null;
 
 // ============================================================================
 // Logging Configuration
@@ -117,6 +122,7 @@ const setStatus = (status: WasmStatus, error: Error | null = null) => {
  * Initialize the WASM module with streaming compilation.
  * Safe to call multiple times - will only initialize once.
  * Uses compileStreaming for maximum performance on modern browsers.
+ * Uses dynamic imports to create async splitpoint for bundle optimization.
  */
 export const initializeWasm = (): Promise<void> => {
   if (initializationPromise) {
@@ -134,6 +140,15 @@ export const initializeWasm = (): Promise<void> => {
     try {
       log('Initializing WASM engine...');
 
+      // Dynamic imports create async splitpoint - WASM not in initial bundle
+      const [wasmBindings, { default: wasmUrl }] = await Promise.all([
+        import('../wasm/warper_wasm.js'),
+        import('../wasm/warper_wasm_bg.wasm?url'),
+      ]);
+      
+      wasmModule = wasmBindings;
+      const wasmInit = wasmBindings.default;
+
       // Use streaming compilation for best performance (Chrome, Firefox, Edge)
       // Falls back gracefully for Safari and older browsers
       if ('compileStreaming' in WebAssembly) {
@@ -141,8 +156,8 @@ export const initializeWasm = (): Promise<void> => {
           const response = fetch(wasmUrl, {
             headers: { 'Content-Type': 'application/wasm' },
           });
-          const wasmModule = await WebAssembly.compileStreaming(response);
-          await wasmInit(wasmModule);
+          const compiledModule = await WebAssembly.compileStreaming(response);
+          await wasmInit(compiledModule);
         } catch {
           // Fallback if streaming fails (CORS, content-type issues)
           logWarn('Streaming compilation failed, using standard loading');
@@ -156,11 +171,11 @@ export const initializeWasm = (): Promise<void> => {
       const endTime = performance.now();
       performanceStats.initTime = endTime - startTime;
       performanceStats.isOptimized = true;
-      performanceStats.version = get_version();
+      performanceStats.version = wasmModule.get_version();
 
       // Run quick benchmark to measure ops/second
       try {
-        performanceStats.opsPerSecond = bench_uniform(10000, 1000);
+        performanceStats.opsPerSecond = wasmModule.bench_uniform(10000, 1000);
       } catch {
         performanceStats.opsPerSecond = 0;
       }
@@ -188,14 +203,22 @@ export const initializeWasm = (): Promise<void> => {
 // ============================================================================
 
 /**
+ * Get the loaded WASM module (throws if not initialized)
+ */
+const getWasmModule = () => {
+  if (wasmStatus !== 'ready' || !wasmModule) {
+    throw new Error('WASM not initialized. Call initializeWasm() first.');
+  }
+  return wasmModule;
+};
+
+/**
  * Create a virtualizer for variable item sizes - O(log n) operations
  */
 export const createVirtualizer = (sizes: number[]): QuantumVariable => {
-  if (wasmStatus !== 'ready') {
-    throw new Error('WASM not initialized. Call initializeWasm() first.');
-  }
+  const wasm = getWasmModule();
   const sizesArray = new Float64Array(sizes);
-  return new QuantumVariable(sizesArray);
+  return new wasm.QuantumVariable(sizesArray);
 };
 
 /**
@@ -203,20 +226,16 @@ export const createVirtualizer = (sizes: number[]): QuantumVariable => {
  * This is the FASTEST option for fixed-height items.
  */
 export const createUniformVirtualizer = (count: number, size: number): QuantumUniform => {
-  if (wasmStatus !== 'ready') {
-    throw new Error('WASM not initialized. Call initializeWasm() first.');
-  }
-  return new QuantumUniform(count, size);
+  const wasm = getWasmModule();
+  return new wasm.QuantumUniform(count, size);
 };
 
 /**
  * Create a QuantumVariable instance using uniform sizing (variable-ready)
  */
 export const createUniformVirtualizerLegacy = (count: number, size: number): QuantumVariable => {
-  if (wasmStatus !== 'ready') {
-    throw new Error('WASM not initialized. Call initializeWasm() first.');
-  }
-  return QuantumVariable.new_uniform(count, size);
+  const wasm = getWasmModule();
+  return wasm.QuantumVariable.new_uniform(count, size);
 };
 
 // ============================================================================
@@ -356,60 +375,80 @@ export const getWasmPerformanceStats = (): WasmPerformanceStats => {
 };
 
 export const runBenchmark = (size: number, iterations: number): number => {
-  if (wasmStatus !== 'ready') {
-    throw new Error('WASM not initialized');
-  }
-  return bench_fenwick(size, iterations);
+  const wasm = getWasmModule();
+  return wasm.bench_fenwick(size, iterations);
 };
 
 export const runUniformBenchmark = (count: number, iterations: number): number => {
-  if (wasmStatus !== 'ready') {
-    throw new Error('WASM not initialized');
-  }
-  return bench_uniform(count, iterations);
+  const wasm = getWasmModule();
+  return wasm.bench_uniform(count, iterations);
 };
 
 export const runVariableBenchmark = (count: number, iterations: number): number => {
-  if (wasmStatus !== 'ready') {
-    throw new Error('WASM not initialized');
-  }
-  return bench_variable(count, iterations);
+  const wasm = getWasmModule();
+  return wasm.bench_variable(count, iterations);
 };
 
 export const runFullBenchmark = (): string => {
-  if (wasmStatus !== 'ready') {
-    throw new Error('WASM not initialized');
-  }
-  return run_benchmarks();
+  const wasm = getWasmModule();
+  return wasm.run_benchmarks();
 };
 
 // ============================================================================
-// Exports - Both new QUANTUM and legacy names
+// Dynamic Accessor Functions for WASM Classes
 // ============================================================================
 
-// New QUANTUM API (recommended)
-export {
-  QuantumVariable,
-  QuantumUniform,
-  QuantumFenwick,
-  QuantumProfiler,
-  VirtualItem,
-  VirtualRangeResult,
-  get_version,
-  bench_fenwick,
-  bench_uniform,
-  bench_variable,
-  run_benchmarks,
+/**
+ * Get the WASM version string
+ */
+export const get_version = (): string => {
+  const wasm = getWasmModule();
+  return wasm.get_version();
 };
 
-// Legacy aliases for backwards compatibility
-export {
-  QuantumVariable as Virtualizer,
-  QuantumUniform as UniformVirtualizer,
-  QuantumFenwick as FenwickTree,
-  QuantumProfiler as PerformanceProfiler,
-  bench_fenwick as benchmark_fenwick,
-  bench_uniform as benchmark_uniform,
-  bench_variable as benchmark_variable,
-  run_benchmarks as run_full_benchmark,
+/**
+ * Run Fenwick tree benchmark
+ */
+export const bench_fenwick = (size: number, iterations: number): number => {
+  const wasm = getWasmModule();
+  return wasm.bench_fenwick(size, iterations);
 };
+
+/**
+ * Run uniform virtualizer benchmark
+ */
+export const bench_uniform = (count: number, iterations: number): number => {
+  const wasm = getWasmModule();
+  return wasm.bench_uniform(count, iterations);
+};
+
+/**
+ * Run variable virtualizer benchmark
+ */
+export const bench_variable = (count: number, iterations: number): number => {
+  const wasm = getWasmModule();
+  return wasm.bench_variable(count, iterations);
+};
+
+/**
+ * Run all benchmarks
+ */
+export const run_benchmarks = (): string => {
+  const wasm = getWasmModule();
+  return wasm.run_benchmarks();
+};
+
+// ============================================================================
+// Legacy Aliases for backwards compatibility
+// ============================================================================
+
+export const benchmark_fenwick = bench_fenwick;
+export const benchmark_uniform = bench_uniform;
+export const benchmark_variable = bench_variable;
+export const run_full_benchmark = run_benchmarks;
+
+// Legacy type aliases
+export type Virtualizer = QuantumVariable;
+export type UniformVirtualizer = QuantumUniform;
+export type FenwickTree = QuantumFenwick;
+export type PerformanceProfiler = QuantumProfiler;

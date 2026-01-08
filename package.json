@@ -1,6 +1,6 @@
 {
   "name": "@itsmeadarsh/warper",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "type": "module",
   "private": false,
   "description": "Ultra-fast React virtualization library - 120+ FPS, 10M+ items, powered by Rust/WASM",
