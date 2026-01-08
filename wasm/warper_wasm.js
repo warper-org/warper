@@ -94,6 +94,11 @@ function getArrayF64FromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return getFloat64ArrayMemory0().subarray(ptr / 8, ptr / 8 + len);
 }
+
+export function init() {
+    wasm.init();
+}
+
 /**
  * Benchmark Fenwick tree - returns ops/second
  * @param {number} count
@@ -105,19 +110,24 @@ export function bench_fenwick(count, iterations) {
     return ret;
 }
 
-export function init() {
-    wasm.init();
-}
-
 /**
- * Benchmark variable virtualizer - returns ops/second
- * @param {number} count
- * @param {number} iterations
- * @returns {number}
+ * @returns {string}
  */
-export function bench_variable(count, iterations) {
-    const ret = wasm.bench_variable(count, iterations);
-    return ret;
+export function get_version() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.get_version(retptr);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred1_0 = r0;
+        deferred1_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export_1(deferred1_0, deferred1_1, 1);
+    }
 }
 
 /**
@@ -142,6 +152,17 @@ export function run_benchmarks() {
 }
 
 /**
+ * Benchmark variable virtualizer - returns ops/second
+ * @param {number} count
+ * @param {number} iterations
+ * @returns {number}
+ */
+export function bench_variable(count, iterations) {
+    const ret = wasm.bench_variable(count, iterations);
+    return ret;
+}
+
+/**
  * Benchmark uniform virtualizer - returns ops/second
  * @param {number} count
  * @param {number} iterations
@@ -150,26 +171,6 @@ export function run_benchmarks() {
 export function bench_uniform(count, iterations) {
     const ret = wasm.bench_uniform(count, iterations);
     return ret;
-}
-
-/**
- * @returns {string}
- */
-export function get_version() {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_version(retptr);
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        deferred1_0 = r0;
-        deferred1_1 = r1;
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export_1(deferred1_0, deferred1_1, 1);
-    }
 }
 
 const QuantumFenwickFinalization = (typeof FinalizationRegistry === 'undefined')

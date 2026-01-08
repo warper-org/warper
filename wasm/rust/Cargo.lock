@@ -89,7 +89,7 @@ checksum = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
 
 [[package]]
 name = "warper-wasm"
-version = "7.0.0"
+version = "7.2.0"
 dependencies = [
  "console_error_panic_hook",
  "js-sys",

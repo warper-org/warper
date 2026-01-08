@@ -140,33 +140,16 @@ export const initializeWasm = (): Promise<void> => {
     try {
       log('Initializing WASM engine...');
 
-      // Dynamic imports create async splitpoint - WASM not in initial bundle
-      const [wasmBindings, { default: wasmUrl }] = await Promise.all([
-        import('../wasm/warper_wasm.js'),
-        import('../wasm/warper_wasm_bg.wasm?url'),
-      ]);
+      // Dynamic import creates async splitpoint - WASM not in initial bundle
+      // wasm-bindgen init() handles WASM loading internally when no argument passed
+      const wasmBindings = await import('../wasm/warper_wasm.js');
       
       wasmModule = wasmBindings;
       const wasmInit = wasmBindings.default;
 
-      // Use streaming compilation for best performance (Chrome, Firefox, Edge)
-      // Falls back gracefully for Safari and older browsers
-      if ('compileStreaming' in WebAssembly) {
-        try {
-          const response = fetch(wasmUrl, {
-            headers: { 'Content-Type': 'application/wasm' },
-          });
-          const compiledModule = await WebAssembly.compileStreaming(response);
-          await wasmInit(compiledModule);
-        } catch {
-          // Fallback if streaming fails (CORS, content-type issues)
-          logWarn('Streaming compilation failed, using standard loading');
-          await wasmInit(wasmUrl);
-        }
-      } else {
-        // Safari and older browsers
-        await wasmInit(wasmUrl);
-      }
+      // Let wasm-bindgen handle WASM loading - it will fetch the .wasm file
+      // relative to the JS file location, which works across all bundlers
+      await wasmInit();
 
       const endTime = performance.now();
       performanceStats.initTime = endTime - startTime;

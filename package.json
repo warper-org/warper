@@ -1,6 +1,6 @@
 {
   "name": "@itsmeadarsh/warper",
-  "version": "7.1.0",
+  "version": "7.2.0",
   "type": "module",
   "private": false,
   "description": "Ultra-fast React virtualization library - 120+ FPS, 10M+ items, powered by Rust/WASM",
@@ -13,8 +13,14 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./wasm/*": "./dist/wasm/*",
     "./package.json": "./package.json"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "repository": {
     "type": "git",
@@ -42,11 +48,6 @@
     "type": "github",
     "url": "https://github.com/sponsors/itsmeadarsh2008"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "publishConfig": {
     "access": "public"
   },
