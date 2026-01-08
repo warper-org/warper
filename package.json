@@ -44,7 +44,6 @@
   },
   "files": [
     "dist",
-    "wasm/rust/pkg",
     "README.md",
     "LICENSE"
   ],
@@ -53,8 +52,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "bun run build:wasm && tsc",
+    "build": "bun run build:wasm && bun run copy:wasm && tsc && mkdir -p dist/wasm && cp wasm/warper_wasm.js wasm/warper_wasm.d.ts wasm/warper_wasm_bg.wasm wasm/warper_wasm_bg.wasm.d.ts dist/wasm/",
     "build:wasm": "cd wasm/rust && wasm-pack build --target web --release && rm -f pkg/.gitignore",
+    "copy:wasm": "cp wasm/rust/pkg/warper_wasm.js wasm/rust/pkg/warper_wasm.d.ts wasm/rust/pkg/warper_wasm_bg.wasm wasm/rust/pkg/warper_wasm_bg.wasm.d.ts wasm/",
     "build:examples": "mkdir -p examples-dist && cp examples/index.html examples-dist/ && bun vite build --config examples/list/vite.config.ts --outDir ../../examples-dist/list && bun vite build --config examples/grid/vite.config.ts --outDir ../../examples-dist/grid && bun vite build --config examples/one-million-rows/vite.config.ts --outDir ../../examples-dist/one-million-rows && bun vite build --config examples/chat/vite.config.ts --outDir ../../examples-dist/chat && bun vite build --config examples/tree/vite.config.ts --outDir ../../examples-dist/tree",
     "build:all": "bun run build && bun run build:examples",
     "prepublishOnly": "bun run build",
@@ -67,15 +67,15 @@
     "example:tree": "vite --config examples/tree/vite.config.ts"
   },
   "peerDependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.2.2",
-    "vite": "^5.2.0",
+    "@types/react": "^18.2.66 || ^19.0.0",
+    "@types/react-dom": "^18.2.22 || ^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.5.0"
   }

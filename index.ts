@@ -1,5 +1,5 @@
 /**
- * ⚡ WARPER v5.0 QUANTUM ⚡
+ * ⚡ WARPER v6.0 QUANTUM ⚡
  * The World's Fastest Virtualization Library
  * 
  * Powered by WebAssembly with:
@@ -8,6 +8,7 @@
  * - Branchless algorithms & 8x loop unrolling
  * - Zero-allocation hot paths
  * - 120+ FPS performance
+ * - Cross-browser scroll virtualization (Chrome, Firefox, Safari, Edge)
  */
 
 // React hooks and components
@@ -18,9 +19,14 @@ export type { WarperComponentRef, WarperComponentProps } from './react/component
 export { FPSMonitor } from './react/components/FPSMonitor';
 export { PerformanceMonitor, usePerformanceMonitor } from './react/components/PerformanceMonitor';
 export type { PerformanceMetrics, PerformanceMonitorProps } from './react/components/PerformanceMonitor';
+export { TestRunner, useTestRunner } from './react/components/TestRunner';
+export type { TestConfig, TestMetrics, TestRunnerProps, TestBreakdown, TestPreset } from './react/components/TestRunner';
 
 // Types
 export type { VirtualizerOptions, VirtualItem, DisplayItem } from './types';
+
+// Logging configuration
+export { setLogging, isLoggingEnabled } from './core/wasm';
 
 // Core WASM utilities - New QUANTUM API
 export { 

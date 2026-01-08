@@ -1,7 +1,17 @@
-import React, { StrictMode, useState, useRef, useEffect } from 'react';
+import React, { StrictMode, useState, useRef, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
-import { WarperComponent, usePerformanceMonitor, PerformanceMonitor, WarperComponentRef } from '../../index';
+import {
+  WarperComponent,
+  usePerformanceMonitor,
+  PerformanceMonitor,
+  WarperComponentRef,
+  TestRunner,
+  TestConfig,
+} from '../../index';
 
+// ============================================================================
+// RESPONSIVE STYLES
+// ============================================================================
 const styles = {
   container: {
     height: '100vh',
@@ -13,28 +23,31 @@ const styles = {
     overflow: 'hidden',
   },
   header: {
-    padding: '16px 24px',
+    padding: 'clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px)',
     borderBottom: '1px solid #1a1a24',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '20px',
+    gap: 'clamp(8px, 2vw, 20px)',
     background: '#0f0f14',
     flexWrap: 'wrap' as const,
   },
   title: {
-    fontSize: '14px',
+    fontSize: 'clamp(11px, 2vw, 14px)',
     fontWeight: 600,
     color: '#e4e4e7',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+    flexShrink: 0,
   },
   controls: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: 'clamp(6px, 1.5vw, 12px)',
     flexWrap: 'wrap' as const,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   controlGroup: {
     display: 'flex',
@@ -42,43 +55,44 @@ const styles = {
     gap: '6px',
   },
   label: {
-    fontSize: '10px',
+    fontSize: 'clamp(8px, 1.5vw, 10px)',
     color: '#71717a',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.5px',
   },
   input: {
-    width: '60px',
-    padding: '5px 8px',
+    width: 'clamp(45px, 8vw, 60px)',
+    padding: 'clamp(3px, 0.5vw, 5px) clamp(4px, 1vw, 8px)',
     background: '#0a0a0f',
     border: '1px solid #1a1a24',
     borderRadius: '4px',
     color: '#e4e4e7',
-    fontSize: '11px',
+    fontSize: 'clamp(9px, 1.5vw, 11px)',
     fontFamily: 'inherit',
     outline: 'none',
   },
   select: {
-    padding: '5px 8px',
+    padding: 'clamp(3px, 0.5vw, 5px) clamp(4px, 1vw, 8px)',
     background: '#0a0a0f',
     border: '1px solid #1a1a24',
     borderRadius: '4px',
     color: '#e4e4e7',
-    fontSize: '11px',
+    fontSize: 'clamp(9px, 1.5vw, 11px)',
     fontFamily: 'inherit',
     cursor: 'pointer',
   },
   button: {
-    padding: '5px 12px',
+    padding: 'clamp(3px, 0.5vw, 5px) clamp(8px, 1.5vw, 12px)',
     background: '#00d4aa20',
     border: '1px solid #00d4aa40',
     borderRadius: '4px',
     color: '#00d4aa',
-    fontSize: '10px',
+    fontSize: 'clamp(8px, 1.5vw, 10px)',
     fontFamily: 'inherit',
     cursor: 'pointer',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.5px',
+    whiteSpace: 'nowrap' as const,
   },
   buttonActive: {
     background: '#00d4aa',
@@ -87,14 +101,46 @@ const styles = {
   tree: {
     flex: 1,
     overflow: 'hidden',
-    margin: '16px 24px',
+    margin: 'clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px)',
     borderRadius: '8px',
     border: '1px solid #1a1a24',
     background: '#0f0f14',
+    minHeight: 0,
+  },
+  testPanel: {
+    position: 'fixed' as const,
+    top: 'clamp(60px, 10vh, 80px)',
+    right: 'clamp(8px, 2vw, 24px)',
+    zIndex: 1000,
+    maxWidth: 'calc(100vw - 32px)',
+    maxHeight: 'calc(100vh - 100px)',
+    overflow: 'auto',
   },
 };
 
-// File type icons and colors
+// ============================================================================
+// RESPONSIVE HOOK
+// ============================================================================
+function useResponsive() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return {
+    isMobile: width < 480,
+    isTablet: width >= 480 && width < 768,
+    isDesktop: width >= 768,
+    width,
+  };
+}
+
+// ============================================================================
+// FILE TYPE DATA
+// ============================================================================
 const fileTypes: Record<string, { icon: string; color: string }> = {
   rs: { icon: '🦀', color: '#f97316' },
   ts: { icon: '📘', color: '#3b82f6' },
@@ -122,15 +168,7 @@ const fileNames = [
   'api', 'client', 'server', 'middleware', 'hooks', 'context',
 ];
 
-function generateFileNode(index: number): {
-  name: string;
-  path: string;
-  isFolder: boolean;
-  depth: number;
-  size: number;
-  modified: string;
-  extension: string;
-} {
+function generateFileNode(index: number) {
   const seed = index * 2654435761;
   const isFolder = index % 7 === 0;
   const depth = (index % 4);
@@ -147,14 +185,8 @@ function generateFileNode(index: number): {
     name = `${baseName}.${extension}`;
   }
   
-  const pathParts = [];
-  for (let i = 0; i < depth; i++) {
-    pathParts.push(folderStructure[(index + i * 3) % folderStructure.length]);
-  }
-  
   return {
     name,
-    path: pathParts.length > 0 ? pathParts.join('/') + '/' + name : name,
     isFolder,
     depth,
     size: isFolder ? 0 : (seed % 50000) + 100,
@@ -170,16 +202,119 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// ============================================================================
+// RESPONSIVE NODE COMPONENT
+// ============================================================================
+const TreeNode = React.memo(function TreeNode({ 
+  index, 
+  isMobile 
+}: { 
+  index: number; 
+  isMobile: boolean;
+}) {
+  const node = generateFileNode(index);
+  const fileType = fileTypes[node.extension] || { icon: '📄', color: '#71717a' };
+  const indentSize = isMobile ? 12 : 16;
+  
+  if (isMobile) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 10px',
+        borderBottom: '1px solid #1a1a24',
+        fontSize: '11px',
+        height: '100%',
+        gap: '6px',
+      }}>
+        <div style={{ paddingLeft: node.depth * indentSize, display: 'flex', alignItems: 'center', gap: '6px', flex: 1, overflow: 'hidden' }}>
+          <span style={{ fontSize: '12px' }}>{fileType.icon}</span>
+          <span style={{
+            color: node.isFolder ? '#eab308' : fileType.color,
+            fontWeight: node.isFolder ? 600 : 400,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {node.name}
+          </span>
+        </div>
+        <span style={{ color: '#52525b', fontSize: '9px', flexShrink: 0 }}>
+          {formatSize(node.size)}
+        </span>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '1fr minmax(70px, 100px) minmax(80px, 100px)',
+      alignItems: 'center',
+      padding: '0 clamp(10px, 2vw, 16px)',
+      borderBottom: '1px solid #1a1a24',
+      fontSize: 'clamp(9px, 1.5vw, 11px)',
+      height: '100%',
+      gap: 'clamp(8px, 2vw, 16px)',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        paddingLeft: node.depth * indentSize,
+        overflow: 'hidden',
+      }}>
+        {node.depth > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {Array.from({ length: node.depth }).map((_, i) => (
+              <span key={i} style={{ color: '#2a2a35', fontSize: '8px' }}>│</span>
+            ))}
+          </div>
+        )}
+        <span style={{ fontSize: '12px' }}>{fileType.icon}</span>
+        <span style={{
+          color: node.isFolder ? '#eab308' : fileType.color,
+          fontWeight: node.isFolder ? 600 : 400,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {node.name}
+        </span>
+        <span style={{ fontSize: '9px', color: '#3f3f46', marginLeft: 'auto' }}>#{index}</span>
+      </div>
+      <div style={{ textAlign: 'right', color: '#71717a' }}>{formatSize(node.size)}</div>
+      <div style={{ textAlign: 'right', color: '#52525b' }}>{node.modified}</div>
+    </div>
+  );
+});
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 function TreeExample() {
+  const { isMobile, isDesktop } = useResponsive();
+  
   const [nodeCount, setNodeCount] = useState(100000);
   const [nodeCountInput, setNodeCountInput] = useState('100000');
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(50);
   const [scrollSpeedInput, setScrollSpeedInput] = useState('50');
   const [scrollPattern, setScrollPattern] = useState<'smooth' | 'jump' | 'random'>('smooth');
+  const [showBenchmark, setShowBenchmark] = useState(false);
+  
   const scrollDirectionRef = useRef(1);
   const warperRef = useRef<WarperComponentRef>(null);
   const { metrics, recordRender } = usePerformanceMonitor();
+  
+  const rowHeight = isMobile ? 32 : 32;
+  
+  const testConfig: TestConfig = {
+    itemCount: nodeCount,
+    itemHeight: rowHeight,
+    scrollSpeed: 5000,
+    sampleCount: 50,
+  };
 
   useEffect(() => {
     if (!isAutoScrolling) return;
@@ -206,13 +341,11 @@ function TreeExample() {
             scrollDirectionRef.current = 1;
           }
           break;
-          
         case 'jump':
           if (Math.random() < 0.02) {
             element.scrollTop = Math.random() * (element.scrollHeight - element.clientHeight);
           }
           break;
-          
         case 'random':
           element.scrollTop += (Math.random() - 0.5) * scrollAmount * 4;
           break;
@@ -225,99 +358,32 @@ function TreeExample() {
     return () => cancelAnimationFrame(rafId);
   }, [isAutoScrolling, scrollSpeed, scrollPattern]);
 
-  const applyNodeCount = () => {
+  const applyNodeCount = useCallback(() => {
     const count = parseInt(nodeCountInput, 10);
-    if (!isNaN(count) && count > 0) {
+    if (!isNaN(count) && count > 0 && count <= 10000000) {
       setNodeCount(count);
     }
-  };
+  }, [nodeCountInput]);
 
-  const applyScrollSpeed = () => {
+  const applyScrollSpeed = useCallback(() => {
     const speed = parseFloat(scrollSpeedInput);
     if (!isNaN(speed) && speed > 0) {
       setScrollSpeed(Math.min(100, speed));
     }
-  };
+  }, [scrollSpeedInput]);
 
-  const renderNode = (index: number) => {
-    const node = generateFileNode(index);
-    const fileType = fileTypes[node.extension] || { icon: '📄', color: '#71717a' };
-    
-    return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 16px',
-          borderBottom: '1px solid #1a1a24',
-          fontSize: '11px',
-          cursor: 'pointer',
-          height: '100%',
-        }}
-      >
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          paddingLeft: node.depth * 16,
-          overflow: 'hidden',
-        }}>
-          {/* Indent lines */}
-          {node.depth > 0 && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-            }}>
-              {Array.from({ length: node.depth }).map((_, i) => (
-                <span key={i} style={{ color: '#2a2a35', fontSize: '8px' }}>│</span>
-              ))}
-            </div>
-          )}
-          
-          {/* Icon */}
-          <span style={{ fontSize: '12px' }}>{fileType.icon}</span>
-          
-          {/* Name */}
-          <span style={{
-            color: node.isFolder ? '#eab308' : fileType.color,
-            fontWeight: node.isFolder ? 600 : 400,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            {node.name}
-          </span>
-          
-          {/* Index badge */}
-          <span style={{
-            fontSize: '9px',
-            color: '#3f3f46',
-            marginLeft: 'auto',
-          }}>
-            #{index}
-          </span>
-        </div>
-        
-        <div style={{
-          width: '100px',
-          textAlign: 'right',
-          color: '#71717a',
-        }}>
-          {formatSize(node.size)}
-        </div>
-        
-        <div style={{
-          width: '100px',
-          textAlign: 'right',
-          color: '#52525b',
-        }}>
-          {node.modified}
-        </div>
-      </div>
-    );
-  };
+  const presets = isMobile 
+    ? [{ label: '10K', value: 10000 }, { label: '100K', value: 100000 }]
+    : [
+        { label: '10K', value: 10000 },
+        { label: '100K', value: 100000 },
+        { label: '500K', value: 500000 },
+        { label: '1M', value: 1000000 },
+      ];
+
+  const renderNode = useCallback((index: number) => (
+    <TreeNode index={index} isMobile={isMobile} />
+  ), [isMobile]);
 
   return (
     <div style={styles.container}>
@@ -327,44 +393,66 @@ function TreeExample() {
           file_explorer
           <span style={{ color: '#eab308' }}>]</span>
           <span style={{ color: '#52525b', marginLeft: '8px' }}>
-            {nodeCount.toLocaleString()} nodes
+            {nodeCount.toLocaleString()} {isMobile ? '' : 'nodes'}
           </span>
         </div>
         
         <div style={styles.controls}>
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>nodes</span>
-            <input
-              type="text"
-              value={nodeCountInput}
-              onChange={(e) => setNodeCountInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyNodeCount()}
-              onBlur={applyNodeCount}
-              style={styles.input}
-            />
-          </div>
+          {presets.map((preset) => (
+            <button
+              key={preset.value}
+              onClick={() => {
+                setNodeCount(preset.value);
+                setNodeCountInput(String(preset.value));
+              }}
+              style={{
+                ...styles.button,
+                ...(nodeCount === preset.value ? styles.buttonActive : {}),
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
           
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>speed</span>
-            <input
-              type="text"
-              value={scrollSpeedInput}
-              onChange={(e) => setScrollSpeedInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyScrollSpeed()}
-              onBlur={applyScrollSpeed}
-              style={{ ...styles.input, width: '45px' }}
-            />
-          </div>
-          
-          <select
-            value={scrollPattern}
-            onChange={(e) => setScrollPattern(e.target.value as any)}
-            style={styles.select}
-          >
-            <option value="smooth">smooth</option>
-            <option value="jump">jump</option>
-            <option value="random">random</option>
-          </select>
+          {isDesktop && (
+            <>
+              <div style={{ width: '1px', height: '20px', background: '#1a1a24' }} />
+              
+              <div style={styles.controlGroup}>
+                <span style={styles.label}>nodes</span>
+                <input
+                  type="text"
+                  value={nodeCountInput}
+                  onChange={(e) => setNodeCountInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyNodeCount()}
+                  onBlur={applyNodeCount}
+                  style={styles.input}
+                />
+              </div>
+              
+              <div style={styles.controlGroup}>
+                <span style={styles.label}>speed</span>
+                <input
+                  type="text"
+                  value={scrollSpeedInput}
+                  onChange={(e) => setScrollSpeedInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyScrollSpeed()}
+                  onBlur={applyScrollSpeed}
+                  style={{ ...styles.input, width: '45px' }}
+                />
+              </div>
+              
+              <select
+                value={scrollPattern}
+                onChange={(e) => setScrollPattern(e.target.value as any)}
+                style={styles.select}
+              >
+                <option value="smooth">smooth</option>
+                <option value="jump">jump</option>
+                <option value="random">random</option>
+              </select>
+            </>
+          )}
           
           <button
             onClick={() => setIsAutoScrolling(!isAutoScrolling)}
@@ -375,35 +463,74 @@ function TreeExample() {
           >
             {isAutoScrolling ? '■ stop' : '▶ scroll'}
           </button>
+          
+          <button
+            onClick={() => setShowBenchmark(!showBenchmark)}
+            style={{
+              ...styles.button,
+              ...(showBenchmark ? styles.buttonActive : {}),
+            }}
+          >
+            {showBenchmark ? '✕ close' : '⚡ bench'}
+          </button>
         </div>
         
-        <PerformanceMonitor metrics={metrics} />
+        {isDesktop && <PerformanceMonitor metrics={metrics} />}
       </div>
       
       {/* Header */}
-      <div style={{ ...styles.tree, flex: 'none', margin: '16px 24px 0', borderRadius: '8px 8px 0 0' }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '8px 16px',
-          background: '#0a0a0f',
-          borderBottom: '1px solid #1a1a24',
-          fontSize: '9px',
-          color: '#71717a',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
-          <div style={{ flex: 1 }}>name</div>
-          <div style={{ width: '100px', textAlign: 'right' }}>size</div>
-          <div style={{ width: '100px', textAlign: 'right' }}>modified</div>
-        </div>
+      <div style={{ 
+        ...styles.tree, 
+        flex: 'none', 
+        margin: 'clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px) 0', 
+        borderRadius: '8px 8px 0 0',
+      }}>
+        {isMobile ? (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '8px 10px',
+            background: '#0a0a0f',
+            borderBottom: '1px solid #1a1a24',
+            fontSize: '9px',
+            color: '#71717a',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            <div style={{ flex: 1 }}>name</div>
+            <div>size</div>
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr minmax(70px, 100px) minmax(80px, 100px)',
+            alignItems: 'center',
+            padding: '8px clamp(10px, 2vw, 16px)',
+            background: '#0a0a0f',
+            borderBottom: '1px solid #1a1a24',
+            fontSize: 'clamp(7px, 1.2vw, 9px)',
+            color: '#71717a',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            gap: 'clamp(8px, 2vw, 16px)',
+          }}>
+            <div>name</div>
+            <div style={{ textAlign: 'right' }}>size</div>
+            <div style={{ textAlign: 'right' }}>modified</div>
+          </div>
+        )}
       </div>
       
-      <div style={{ ...styles.tree, marginTop: 0, borderRadius: '0 0 8px 8px', borderTop: 'none' }}>
+      <div style={{ 
+        ...styles.tree, 
+        marginTop: 0, 
+        borderRadius: '0 0 8px 8px', 
+        borderTop: 'none',
+      }}>
         <WarperComponent
           ref={warperRef}
           itemCount={nodeCount}
-          estimateSize={() => 32}
+          estimateSize={() => rowHeight}
           overscan={5}
           style={{ height: '100%' }}
           onRendered={recordRender}
@@ -411,6 +538,20 @@ function TreeExample() {
           {renderNode}
         </WarperComponent>
       </div>
+      
+      {/* Benchmark Panel */}
+      {showBenchmark && (
+        <div style={styles.testPanel}>
+          <TestRunner
+            config={testConfig}
+            scrollRef={warperRef}
+            enabled={!isAutoScrolling}
+            onComplete={(results) => {
+              console.log('Benchmark complete:', results);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

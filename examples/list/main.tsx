@@ -1,8 +1,18 @@
-import React, { StrictMode, useState, useRef, useEffect } from 'react';
+import React, { StrictMode, useState, useRef, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
-import { WarperComponent, usePerformanceMonitor, PerformanceMonitor, WarperComponentRef } from '../../index';
+import {
+  WarperComponent,
+  usePerformanceMonitor,
+  PerformanceMonitor,
+  WarperComponentRef,
+  TestRunner,
+  TestConfig,
+} from '../../index';
 
-// Monospace styles
+// ============================================================================
+// STYLES
+// ============================================================================
+
 const styles = {
   container: {
     height: '100vh',
@@ -14,14 +24,12 @@ const styles = {
     overflow: 'hidden',
   },
   header: {
-    padding: '16px 24px',
-    borderBottom: '1px solid #1a1a24',
+    padding: '12px 20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '24px',
     background: '#0f0f14',
-    flexWrap: 'wrap' as const,
+    borderBottom: '1px solid #1a1a24',
   },
   title: {
     fontSize: '14px',
@@ -31,11 +39,29 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
   },
-  controls: {
+  list: {
+    flex: 1,
+    overflow: 'hidden',
+    margin: '16px 20px',
+    borderRadius: '8px',
+    border: '1px solid #1a1a24',
+    background: '#0f0f14',
+    minHeight: 0,
+  },
+  floatingPanel: {
+    position: 'fixed' as const,
+    bottom: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: '#0f0f14',
+    border: '1px solid #1a1a24',
+    borderRadius: '12px',
+    padding: '12px 20px',
     display: 'flex',
     alignItems: 'center',
     gap: '16px',
-    flexWrap: 'wrap' as const,
+    zIndex: 1000,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
   },
   controlGroup: {
     display: 'flex',
@@ -43,21 +69,32 @@ const styles = {
     gap: '8px',
   },
   label: {
-    fontSize: '11px',
+    fontSize: '10px',
     color: '#71717a',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.5px',
   },
   input: {
-    width: '80px',
+    width: '70px',
     padding: '6px 10px',
     background: '#0a0a0f',
     border: '1px solid #1a1a24',
     borderRadius: '4px',
     color: '#e4e4e7',
-    fontSize: '12px',
+    fontSize: '11px',
     fontFamily: 'inherit',
     outline: 'none',
+  },
+  select: {
+    padding: '6px 10px',
+    background: '#0a0a0f',
+    border: '1px solid #1a1a24',
+    borderRadius: '4px',
+    color: '#e4e4e7',
+    fontSize: '11px',
+    fontFamily: 'inherit',
+    outline: 'none',
+    cursor: 'pointer',
   },
   button: {
     padding: '6px 14px',
@@ -65,51 +102,35 @@ const styles = {
     border: '1px solid #00d4aa40',
     borderRadius: '4px',
     color: '#00d4aa',
-    fontSize: '11px',
+    fontSize: '10px',
     fontFamily: 'inherit',
     cursor: 'pointer',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.5px',
-    transition: 'all 0.15s',
   },
   buttonActive: {
     background: '#00d4aa',
     color: '#0a0a0f',
   },
-  list: {
-    flex: 1,
-    overflow: 'hidden',
-    margin: '16px 24px',
-    borderRadius: '8px',
-    border: '1px solid #1a1a24',
-    background: '#0f0f14',
+  divider: {
+    width: '1px',
+    height: '24px',
+    background: '#1a1a24',
   },
-  row: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '0 16px',
-    borderBottom: '1px solid #1a1a24',
-    fontSize: '12px',
-    height: '100%',
-    boxSizing: 'border-box' as const,
-  },
-  rowHeader: {
-    background: '#0a0a0f',
-    color: '#71717a',
-    fontSize: '10px',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.5px',
-    fontWeight: 600,
-  },
-  cell: {
-    padding: '12px 8px',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
+  testPanel: {
+    position: 'fixed' as const,
+    top: '80px',
+    right: '20px',
+    zIndex: 1000,
+    maxHeight: 'calc(100vh - 180px)',
+    overflow: 'auto',
   },
 };
 
-// Generate meaningful employee data
+// ============================================================================
+// DATA GENERATION
+// ============================================================================
+
 const departments = ['engineering', 'design', 'product', 'marketing', 'sales', 'support', 'hr', 'finance'];
 const statuses = ['active', 'away', 'busy', 'offline'];
 const firstNames = ['alex', 'jordan', 'taylor', 'morgan', 'casey', 'riley', 'quinn', 'blake', 'drew', 'sage'];
@@ -129,109 +150,88 @@ function generateEmployee(index: number) {
   };
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'active': return '#00d4aa';
-    case 'away': return '#eab308';
-    case 'busy': return '#ef4444';
-    default: return '#71717a';
-  }
+// ============================================================================
+// PRE-COMPUTED STYLES
+// ============================================================================
+
+const DOT_STYLES: Record<string, React.CSSProperties> = {
+  active: { width: '6px', height: '6px', borderRadius: '50%', background: '#00d4aa', flexShrink: 0 },
+  away: { width: '6px', height: '6px', borderRadius: '50%', background: '#eab308', flexShrink: 0 },
+  busy: { width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 },
+  offline: { width: '6px', height: '6px', borderRadius: '50%', background: '#71717a', flexShrink: 0 },
 };
 
-const getDeptColor = (dept: string) => {
-  const colors: Record<string, string> = {
-    engineering: '#3b82f6',
-    design: '#a855f7',
-    product: '#00d4aa',
-    marketing: '#f97316',
-    sales: '#22c55e',
-    support: '#06b6d4',
-    hr: '#ec4899',
-    finance: '#eab308',
-  };
-  return colors[dept] || '#71717a';
+const DEPT_COLORS: Record<string, string> = {
+  engineering: '#3b82f6',
+  design: '#a855f7',
+  product: '#00d4aa',
+  marketing: '#f97316',
+  sales: '#22c55e',
+  support: '#06b6d4',
+  hr: '#ec4899',
+  finance: '#eab308',
 };
 
 // ============================================================================
-// ULTRA-FAST ROW RENDERING - PRE-COMPUTED STYLES FOR 120+ FPS
+// ROW COMPONENT
 // ============================================================================
 
-const ROW_STYLE: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '0 16px',
-  borderBottom: '1px solid #1a1a24',
-  fontSize: '12px',
-  height: '100%',
-  boxSizing: 'border-box',
-  color: '#e4e4e7',
-};
-
-const CELL_ID: React.CSSProperties = { padding: '12px 8px', width: '100px', color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const CELL_NAME: React.CSSProperties = { padding: '12px 8px', width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const CELL_EMAIL: React.CSSProperties = { padding: '12px 8px', width: '200px', color: '#a1a1aa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const CELL_DEPT: React.CSSProperties = { padding: '12px 8px', width: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const CELL_STATUS: React.CSSProperties = { padding: '12px 8px', width: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const CELL_SALARY: React.CSSProperties = { padding: '12px 8px', width: '100px', color: '#00d4aa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const CELL_PERF: React.CSSProperties = { padding: '12px 8px', width: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const STATUS_BADGE: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '6px' };
-const DOT_ACTIVE: React.CSSProperties = { width: '6px', height: '6px', borderRadius: '50%', background: '#00d4aa' };
-const DOT_AWAY: React.CSSProperties = { width: '6px', height: '6px', borderRadius: '50%', background: '#eab308' };
-const DOT_BUSY: React.CSSProperties = { width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' };
-const DOT_OFFLINE: React.CSSProperties = { width: '6px', height: '6px', borderRadius: '50%', background: '#71717a' };
-
-const DEPT_STYLES: Record<string, React.CSSProperties> = {
-  engineering: { ...CELL_DEPT, color: '#3b82f6' },
-  design: { ...CELL_DEPT, color: '#a855f7' },
-  product: { ...CELL_DEPT, color: '#00d4aa' },
-  marketing: { ...CELL_DEPT, color: '#f97316' },
-  sales: { ...CELL_DEPT, color: '#22c55e' },
-  support: { ...CELL_DEPT, color: '#06b6d4' },
-  hr: { ...CELL_DEPT, color: '#ec4899' },
-  finance: { ...CELL_DEPT, color: '#eab308' },
-};
-
-const PERF_HIGH: React.CSSProperties = { ...CELL_PERF, color: '#00d4aa' };
-const PERF_MED: React.CSSProperties = { ...CELL_PERF, color: '#eab308' };
-const PERF_LOW: React.CSSProperties = { ...CELL_PERF, color: '#ef4444' };
-
-// Ultra-fast row component
 const FastEmployeeRow = React.memo(function FastEmployeeRow({ index }: { index: number }) {
   const emp = generateEmployee(index);
-  const dotStyle = emp.status === 'active' ? DOT_ACTIVE : emp.status === 'away' ? DOT_AWAY : emp.status === 'busy' ? DOT_BUSY : DOT_OFFLINE;
-  const deptStyle = DEPT_STYLES[emp.department] || CELL_DEPT;
-  const perfStyle = emp.performance >= 90 ? PERF_HIGH : emp.performance >= 75 ? PERF_MED : PERF_LOW;
+  const perfColor = emp.performance >= 90 ? '#00d4aa' : emp.performance >= 75 ? '#eab308' : '#ef4444';
   
   return (
-    <div style={ROW_STYLE}>
-      <div style={CELL_ID}>{emp.id}</div>
-      <div style={CELL_NAME}>{emp.name}</div>
-      <div style={CELL_EMAIL}>{emp.email}</div>
-      <div style={deptStyle}>{emp.department}</div>
-      <div style={CELL_STATUS}>
-        <span style={STATUS_BADGE}>
-          <span style={dotStyle} />
-          {emp.status}
-        </span>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '100px 140px 1fr 100px 80px 100px 80px',
+      alignItems: 'center',
+      padding: '0 16px',
+      borderBottom: '1px solid #1a1a24',
+      fontSize: '12px',
+      height: '100%',
+      boxSizing: 'border-box',
+      color: '#e4e4e7',
+      gap: '8px',
+    }}>
+      <div style={{ color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.id}</div>
+      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</div>
+      <div style={{ color: '#a1a1aa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.email}</div>
+      <div style={{ color: DEPT_COLORS[emp.department] || '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.department}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={DOT_STYLES[emp.status]} />
+        <span>{emp.status}</span>
       </div>
-      <div style={CELL_SALARY}>${emp.salary.toLocaleString()}</div>
-      <div style={perfStyle}>{emp.performance}%</div>
+      <div style={{ color: '#00d4aa' }}>${emp.salary.toLocaleString()}</div>
+      <div style={{ color: perfColor }}>{emp.performance}%</div>
     </div>
   );
 });
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 function DataTable() {
   const [rowCount, setRowCount] = useState(100000);
   const [rowCountInput, setRowCountInput] = useState('100000');
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(50);
-  const [scrollSpeedInput, setScrollSpeedInput] = useState('50');
   const [scrollPattern, setScrollPattern] = useState<'smooth' | 'jump' | 'random' | 'bounce'>('smooth');
+  const [showBenchmark, setShowBenchmark] = useState(false);
+  
   const scrollDirectionRef = useRef(1);
   const warperRef = useRef<WarperComponentRef>(null);
   const { metrics, recordRender } = usePerformanceMonitor();
+  
+  const rowHeight = 44;
+  
+  const testConfig: TestConfig = {
+    itemCount: rowCount,
+    itemHeight: rowHeight,
+    scrollSpeed: 5000,
+    sampleCount: 50,
+  };
 
-  // Performant auto-scroll
   useEffect(() => {
     if (!isAutoScrolling) return;
     
@@ -257,22 +257,17 @@ function DataTable() {
             scrollDirectionRef.current = 1;
           }
           break;
-          
         case 'jump':
           if (Math.random() < 0.02) {
             element.scrollTop = Math.random() * (element.scrollHeight - element.clientHeight);
           }
           break;
-          
         case 'random':
           element.scrollTop += (Math.random() - 0.5) * scrollAmount * 4;
           break;
-          
         case 'bounce':
           element.scrollTop += scrollAmount * scrollDirectionRef.current;
-          if (Math.random() < 0.005) {
-            scrollDirectionRef.current *= -1;
-          }
+          if (Math.random() < 0.005) scrollDirectionRef.current *= -1;
           if (element.scrollTop >= element.scrollHeight - element.clientHeight) {
             scrollDirectionRef.current = -1;
           } else if (element.scrollTop <= 0) {
@@ -288,22 +283,27 @@ function DataTable() {
     return () => cancelAnimationFrame(rafId);
   }, [isAutoScrolling, scrollSpeed, scrollPattern]);
 
-  const applyRowCount = () => {
+  const applyRowCount = useCallback(() => {
     const count = parseInt(rowCountInput, 10);
-    if (!isNaN(count) && count > 0) {
+    if (!isNaN(count) && count > 0 && count <= 10000000) {
       setRowCount(count);
     }
-  };
+  }, [rowCountInput]);
 
-  const applyScrollSpeed = () => {
-    const speed = parseFloat(scrollSpeedInput);
-    if (!isNaN(speed) && speed > 0) {
-      setScrollSpeed(Math.min(100, speed));
-    }
-  };
+  const presets = [
+    { label: '10K', value: 10000 },
+    { label: '100K', value: 100000 },
+    { label: '500K', value: 500000 },
+    { label: '1M', value: 1000000 },
+  ];
+
+  const renderRow = useCallback((index: number) => (
+    <FastEmployeeRow index={index} />
+  ), []);
 
   return (
     <div style={styles.container}>
+      {/* Header */}
       <div style={styles.header}>
         <div style={styles.title}>
           <span style={{ color: '#00d4aa' }}>[</span>
@@ -313,86 +313,137 @@ function DataTable() {
             {rowCount.toLocaleString()} records
           </span>
         </div>
-        
-        <div style={styles.controls}>
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>rows</span>
-            <input
-              type="text"
-              value={rowCountInput}
-              onChange={(e) => setRowCountInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyRowCount()}
-              onBlur={applyRowCount}
-              style={styles.input}
-            />
-          </div>
-          
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>speed</span>
-            <input
-              type="text"
-              value={scrollSpeedInput}
-              onChange={(e) => setScrollSpeedInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyScrollSpeed()}
-              onBlur={applyScrollSpeed}
-              style={{ ...styles.input, width: '50px' }}
-            />
-          </div>
-          
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>pattern</span>
-            <select
-              value={scrollPattern}
-              onChange={(e) => setScrollPattern(e.target.value as any)}
-              style={{ ...styles.input, width: '90px', cursor: 'pointer' }}
-            >
-              <option value="smooth">smooth</option>
-              <option value="jump">jump</option>
-              <option value="random">random</option>
-              <option value="bounce">bounce</option>
-            </select>
-          </div>
-          
-          <button
-            onClick={() => setIsAutoScrolling(!isAutoScrolling)}
-            style={{
-              ...styles.button,
-              ...(isAutoScrolling ? styles.buttonActive : {}),
-            }}
-          >
-            {isAutoScrolling ? '■ stop' : '▶ scroll'}
-          </button>
-        </div>
-        
         <PerformanceMonitor metrics={metrics} />
       </div>
       
-      {/* Header Row */}
-      <div style={{ ...styles.list, flex: 'none', margin: '16px 24px 0', borderBottom: 'none', borderRadius: '8px 8px 0 0' }}>
-        <div style={{ ...styles.row, ...styles.rowHeader, height: '40px' }}>
-          <div style={{ ...styles.cell, width: '100px' }}>id</div>
-          <div style={{ ...styles.cell, width: '140px' }}>name</div>
-          <div style={{ ...styles.cell, width: '200px' }}>email</div>
-          <div style={{ ...styles.cell, width: '100px' }}>dept</div>
-          <div style={{ ...styles.cell, width: '80px' }}>status</div>
-          <div style={{ ...styles.cell, width: '100px' }}>salary</div>
-          <div style={{ ...styles.cell, width: '80px' }}>perf</div>
+      {/* Table Header */}
+      <div style={{ 
+        ...styles.list, 
+        flex: 'none', 
+        margin: '16px 20px 0',
+        borderRadius: '8px 8px 0 0',
+        marginBottom: 0,
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '100px 140px 1fr 100px 80px 100px 80px',
+          alignItems: 'center',
+          padding: '0 16px',
+          background: '#0a0a0f',
+          color: '#71717a',
+          fontSize: '10px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          height: '40px',
+          gap: '8px',
+        }}>
+          <div>id</div>
+          <div>name</div>
+          <div>email</div>
+          <div>dept</div>
+          <div>status</div>
+          <div>salary</div>
+          <div>perf</div>
         </div>
       </div>
       
       {/* Virtualized List */}
-      <div style={{ ...styles.list, marginTop: 0, borderRadius: '0 0 8px 8px', borderTop: 'none' }}>
+      <div style={{ 
+        ...styles.list, 
+        marginTop: 0, 
+        borderRadius: '0 0 8px 8px', 
+        borderTop: 'none',
+        marginBottom: '80px',
+      }}>
         <WarperComponent
           ref={warperRef}
           itemCount={rowCount}
-          estimateSize={() => 44}
+          estimateSize={() => rowHeight}
           overscan={3}
           style={{ height: '100%' }}
           onRendered={recordRender}
         >
-          {(index) => <FastEmployeeRow index={index} />}
+          {renderRow}
         </WarperComponent>
       </div>
+      
+      {/* Floating Control Panel */}
+      <div style={styles.floatingPanel}>
+        {presets.map((preset) => (
+          <button
+            key={preset.value}
+            onClick={() => {
+              setRowCount(preset.value);
+              setRowCountInput(String(preset.value));
+            }}
+            style={{
+              ...styles.button,
+              ...(rowCount === preset.value ? styles.buttonActive : {}),
+            }}
+          >
+            {preset.label}
+          </button>
+        ))}
+        
+        <div style={styles.divider} />
+        
+        <div style={styles.controlGroup}>
+          <span style={styles.label}>rows</span>
+          <input
+            type="text"
+            value={rowCountInput}
+            onChange={(e) => setRowCountInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && applyRowCount()}
+            onBlur={applyRowCount}
+            style={styles.input}
+          />
+        </div>
+        
+        <select
+          value={scrollPattern}
+          onChange={(e) => setScrollPattern(e.target.value as any)}
+          style={styles.select}
+        >
+          <option value="smooth">smooth</option>
+          <option value="jump">jump</option>
+          <option value="random">random</option>
+          <option value="bounce">bounce</option>
+        </select>
+        
+        <button
+          onClick={() => setIsAutoScrolling(!isAutoScrolling)}
+          style={{
+            ...styles.button,
+            ...(isAutoScrolling ? styles.buttonActive : {}),
+          }}
+        >
+          {isAutoScrolling ? '■ stop' : '▶ scroll'}
+        </button>
+        
+        <button
+          onClick={() => setShowBenchmark(!showBenchmark)}
+          style={{
+            ...styles.button,
+            ...(showBenchmark ? styles.buttonActive : {}),
+          }}
+        >
+          {showBenchmark ? '✕ close' : '⚡ bench'}
+        </button>
+      </div>
+      
+      {/* Benchmark Panel */}
+      {showBenchmark && (
+        <div style={styles.testPanel}>
+          <TestRunner
+            config={testConfig}
+            scrollRef={warperRef}
+            enabled={!isAutoScrolling}
+            onComplete={(results) => {
+              console.log('Benchmark complete:', results);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -402,4 +453,3 @@ createRoot(document.getElementById('root')!).render(
     <DataTable />
   </StrictMode>
 );
-

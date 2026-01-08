@@ -1,4 +1,4 @@
-//! ⚡ WARPER v5.0 QUANTUM ENGINE ⚡
+//! ⚡ WARPER v6.0 QUANTUM ENGINE ⚡
 //! 
 //! THE WORLD'S FASTEST VIRTUALIZATION ENGINE - BEYOND PHYSICS
 //! 
@@ -995,7 +995,7 @@ pub fn init() {
 
 #[wasm_bindgen]
 pub fn get_version() -> String {
-    "5.0.0-quantum".to_string()
+    "6.0.0-quantum".to_string()
 }
 
 // ============================================================================

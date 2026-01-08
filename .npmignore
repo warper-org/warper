@@ -33,3 +33,4 @@ wasm/rust/Cargo.lock
 copilot-instructions.md
 CONTRIBUTING.md
 INSTALLATION.md
+examples-dist/

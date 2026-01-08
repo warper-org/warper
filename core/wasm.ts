@@ -1,5 +1,5 @@
 /**
- * ⚡ WARPER v5.0 QUANTUM WASM Integration ⚡
+ * ⚡ WARPER v6.0 QUANTUM WASM Integration ⚡
  * 
  * THE WORLD'S FASTEST virtualization powered by WebAssembly
  * Optimized for 120+ FPS with zero-copy typed arrays
@@ -25,10 +25,42 @@ import wasmInit, {
   bench_uniform,
   bench_variable,
   run_benchmarks,
-} from '../wasm/rust/pkg/warper_wasm.js';
+} from '../wasm/warper_wasm.js';
 
 // Import WASM binary URL for Vite
-import wasmUrl from '../wasm/rust/pkg/warper_wasm_bg.wasm?url';
+import wasmUrl from '../wasm/warper_wasm_bg.wasm?url';
+
+// ============================================================================
+// Logging Configuration
+// ============================================================================
+
+let loggingEnabled = false;
+
+/**
+ * Enable or disable logging for Warper.
+ * By default, logging is disabled in production.
+ */
+export const setLogging = (enabled: boolean): void => {
+  loggingEnabled = enabled;
+};
+
+/**
+ * Get current logging state
+ */
+export const isLoggingEnabled = (): boolean => loggingEnabled;
+
+// Internal log helper - only logs when enabled
+const log = (...args: unknown[]): void => {
+  if (loggingEnabled) {
+    console.log('[Warper]', ...args);
+  }
+};
+
+const logWarn = (...args: unknown[]): void => {
+  if (loggingEnabled) {
+    console.warn('[Warper]', ...args);
+  }
+};
 
 // ============================================================================
 // Types
@@ -100,7 +132,7 @@ export const initializeWasm = (): Promise<void> => {
 
   initializationPromise = (async () => {
     try {
-      console.log('⚡ Initializing WARPER v5.0 QUANTUM Engine...');
+      log('Initializing WASM engine...');
 
       // Use streaming compilation for best performance (Chrome, Firefox, Edge)
       // Falls back gracefully for Safari and older browsers
@@ -113,7 +145,7 @@ export const initializeWasm = (): Promise<void> => {
           await wasmInit(wasmModule);
         } catch {
           // Fallback if streaming fails (CORS, content-type issues)
-          console.log('📦 Falling back to standard WASM loading...');
+          logWarn('Streaming compilation failed, using standard loading');
           await wasmInit(wasmUrl);
         }
       } else {
@@ -133,14 +165,14 @@ export const initializeWasm = (): Promise<void> => {
         performanceStats.opsPerSecond = 0;
       }
 
-      console.log(`⚡ QUANTUM initialized in ${performanceStats.initTime.toFixed(2)}ms`);
-      console.log(`📦 Version: ${performanceStats.version}`);
-      console.log(`🚀 Performance: ${performanceStats.opsPerSecond.toFixed(0)} ops/sec`);
+      log(`Initialized in ${performanceStats.initTime.toFixed(2)}ms`);
 
       setStatus('ready');
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      console.error('❌ WASM initialization failed:', error);
+      if (loggingEnabled) {
+        console.error('[Warper] WASM initialization failed:', error);
+      }
       setStatus('error', error);
       throw error;
     } finally {
@@ -171,13 +203,10 @@ export const createVirtualizer = (sizes: number[]): QuantumVariable => {
  * This is the FASTEST option for fixed-height items.
  */
 export const createUniformVirtualizer = (count: number, size: number): QuantumUniform => {
-  console.log('[wasm.ts] createUniformVirtualizer called', { count, size, wasmStatus });
   if (wasmStatus !== 'ready') {
     throw new Error('WASM not initialized. Call initializeWasm() first.');
   }
-  const v = new QuantumUniform(count, size);
-  console.log('[wasm.ts] QuantumUniform created', v);
-  return v;
+  return new QuantumUniform(count, size);
 };
 
 /**

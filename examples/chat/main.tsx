@@ -1,6 +1,13 @@
-import React, { StrictMode, useState, useRef, useEffect, useMemo } from 'react';
+import React, { StrictMode, useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
-import { WarperComponent, usePerformanceMonitor, PerformanceMonitor, WarperComponentRef } from '../../index';
+import {
+  WarperComponent,
+  usePerformanceMonitor,
+  PerformanceMonitor,
+  WarperComponentRef,
+  TestRunner,
+  TestConfig,
+} from '../../index';
 
 const styles = {
   container: {
@@ -13,28 +20,31 @@ const styles = {
     overflow: 'hidden',
   },
   header: {
-    padding: '16px 24px',
+    padding: 'clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px)',
     borderBottom: '1px solid #1a1a24',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '20px',
+    gap: 'clamp(8px, 2vw, 20px)',
     background: '#0f0f14',
     flexWrap: 'wrap' as const,
   },
   title: {
-    fontSize: '14px',
+    fontSize: 'clamp(11px, 2vw, 14px)',
     fontWeight: 600,
     color: '#e4e4e7',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+    flexShrink: 0,
   },
   controls: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: 'clamp(6px, 1.5vw, 12px)',
     flexWrap: 'wrap' as const,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   controlGroup: {
     display: 'flex',
@@ -42,43 +52,44 @@ const styles = {
     gap: '6px',
   },
   label: {
-    fontSize: '10px',
+    fontSize: 'clamp(8px, 1.5vw, 10px)',
     color: '#71717a',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.5px',
   },
   input: {
-    width: '60px',
-    padding: '5px 8px',
+    width: 'clamp(45px, 8vw, 60px)',
+    padding: 'clamp(3px, 0.5vw, 5px) clamp(4px, 1vw, 8px)',
     background: '#0a0a0f',
     border: '1px solid #1a1a24',
     borderRadius: '4px',
     color: '#e4e4e7',
-    fontSize: '11px',
+    fontSize: 'clamp(9px, 1.5vw, 11px)',
     fontFamily: 'inherit',
     outline: 'none',
   },
   select: {
-    padding: '5px 8px',
+    padding: 'clamp(3px, 0.5vw, 5px) clamp(4px, 1vw, 8px)',
     background: '#0a0a0f',
     border: '1px solid #1a1a24',
     borderRadius: '4px',
     color: '#e4e4e7',
-    fontSize: '11px',
+    fontSize: 'clamp(9px, 1.5vw, 11px)',
     fontFamily: 'inherit',
     cursor: 'pointer',
   },
   button: {
-    padding: '5px 12px',
+    padding: 'clamp(3px, 0.5vw, 5px) clamp(8px, 1.5vw, 12px)',
     background: '#00d4aa20',
     border: '1px solid #00d4aa40',
     borderRadius: '4px',
     color: '#00d4aa',
-    fontSize: '10px',
+    fontSize: 'clamp(8px, 1.5vw, 10px)',
     fontFamily: 'inherit',
     cursor: 'pointer',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.5px',
+    whiteSpace: 'nowrap' as const,
   },
   buttonActive: {
     background: '#00d4aa',
@@ -87,12 +98,37 @@ const styles = {
   chat: {
     flex: 1,
     overflow: 'hidden',
-    margin: '16px 24px',
+    margin: 'clamp(8px, 2vw, 16px) clamp(12px, 3vw, 24px)',
     borderRadius: '8px',
     border: '1px solid #1a1a24',
     background: '#0f0f14',
+    minHeight: 0,
+  },
+  testPanel: {
+    position: 'fixed' as const,
+    top: 'clamp(60px, 10vh, 80px)',
+    right: 'clamp(8px, 2vw, 24px)',
+    zIndex: 1000,
+    maxWidth: 'calc(100vw - 32px)',
+    maxHeight: 'calc(100vh - 100px)',
+    overflow: 'auto',
   },
 };
+
+function useResponsive() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return {
+    isMobile: width < 480,
+    isTablet: width >= 480 && width < 768,
+    isDesktop: width >= 768,
+    width,
+  };
+}
 
 const users = [
   { name: 'alice', color: '#00d4aa' },
@@ -146,18 +182,124 @@ function generateMessage(index: number) {
   };
 }
 
+const ChatMessage = React.memo(function ChatMessage({ index, isMobile }: { index: number; isMobile: boolean }) {
+  const message = generateMessage(index);
+  const avatarSize = isMobile ? 24 : 28;
+  const fontSize = isMobile ? 11 : 12;
+  
+  return (
+    <div style={{
+      padding: isMobile ? '10px 12px' : '12px 16px',
+      borderBottom: '1px solid #1a1a24',
+      height: '100%',
+      boxSizing: 'border-box',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: isMobile ? '8px' : '10px',
+        marginBottom: '6px',
+      }}>
+        <div style={{
+          width: avatarSize,
+          height: avatarSize,
+          borderRadius: '6px',
+          background: message.user.color + '20',
+          border: `1px solid ${message.user.color}40`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: isMobile ? '10px' : '11px',
+          color: message.user.color,
+          fontWeight: 600,
+        }}>
+          {message.user.name[0].toUpperCase()}
+        </div>
+        <span style={{ fontSize: fontSize, color: message.user.color, fontWeight: 600 }}>
+          {message.user.name}
+        </span>
+        <span style={{ fontSize: isMobile ? '9px' : '10px', color: '#52525b' }}>
+          {message.timestamp}
+        </span>
+        {!isMobile && (
+          <span style={{ fontSize: '9px', color: '#3f3f46' }}>#{index}</span>
+        )}
+      </div>
+      
+      {message.hasCode ? (
+        <pre style={{
+          margin: 0,
+          padding: isMobile ? '8px 10px' : '10px 12px',
+          background: '#0a0a0f',
+          borderRadius: '6px',
+          border: '1px solid #1a1a24',
+          fontSize: isMobile ? '10px' : '11px',
+          color: '#a1a1aa',
+          overflow: 'hidden',
+          whiteSpace: 'pre-wrap',
+        }}>
+          {message.text.replace(/```\w*\n?/g, '').trim()}
+        </pre>
+      ) : message.hasQuote ? (
+        <div style={{
+          borderLeft: '2px solid #3b82f6',
+          paddingLeft: isMobile ? '10px' : '12px',
+          color: '#a1a1aa',
+          fontSize: fontSize,
+          lineHeight: 1.5,
+        }}>
+          {message.text}
+        </div>
+      ) : (
+        <div style={{
+          fontSize: fontSize,
+          color: '#e4e4e7',
+          lineHeight: 1.5,
+        }}>
+          {message.text}
+        </div>
+      )}
+      
+      {message.reactions.length > 0 && (
+        <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+          {message.reactions.map((reaction, i) => (
+            <span key={i} style={{
+              padding: '2px 8px',
+              background: '#1a1a24',
+              borderRadius: '12px',
+              fontSize: isMobile ? '10px' : '11px',
+            }}>
+              {reaction}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
 function ChatExample() {
+  const { isMobile, isDesktop } = useResponsive();
+  
   const [messageCount, setMessageCount] = useState(50000);
   const [messageCountInput, setMessageCountInput] = useState('50000');
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(50);
   const [scrollSpeedInput, setScrollSpeedInput] = useState('50');
   const [scrollPattern, setScrollPattern] = useState<'smooth' | 'jump' | 'random'>('smooth');
+  const [showBenchmark, setShowBenchmark] = useState(false);
+  
   const scrollDirectionRef = useRef(1);
   const warperRef = useRef<WarperComponentRef>(null);
   const { metrics, recordRender } = usePerformanceMonitor();
   
-  // Pre-generate heights for variable sizing
+  const testConfig: TestConfig = {
+    itemCount: messageCount,
+    itemHeight: 70, // Average message height
+    scrollSpeed: 5000,
+    sampleCount: 50,
+  };
+  
   const getMessageHeight = useMemo(() => {
     const cache: Record<number, number> = {};
     return (index: number) => {
@@ -169,17 +311,14 @@ function ChatExample() {
 
   useEffect(() => {
     if (!isAutoScrolling) return;
-    
     const element = warperRef.current?.element;
     if (!element) return;
     
     let rafId: number;
     let lastTime = performance.now();
-    
     const scroll = (time: number) => {
       const delta = time - lastTime;
       lastTime = time;
-      
       const pixelsPerMs = scrollSpeed * 0.4;
       const scrollAmount = pixelsPerMs * delta;
       
@@ -192,18 +331,15 @@ function ChatExample() {
             scrollDirectionRef.current = 1;
           }
           break;
-          
         case 'jump':
           if (Math.random() < 0.02) {
             element.scrollTop = Math.random() * (element.scrollHeight - element.clientHeight);
           }
           break;
-          
         case 'random':
           element.scrollTop += (Math.random() - 0.5) * scrollAmount * 4;
           break;
       }
-      
       rafId = requestAnimationFrame(scroll);
     };
     
@@ -211,123 +347,32 @@ function ChatExample() {
     return () => cancelAnimationFrame(rafId);
   }, [isAutoScrolling, scrollSpeed, scrollPattern]);
 
-  const applyMessageCount = () => {
+  const applyMessageCount = useCallback(() => {
     const count = parseInt(messageCountInput, 10);
-    if (!isNaN(count) && count > 0) {
+    if (!isNaN(count) && count > 0 && count <= 10000000) {
       setMessageCount(count);
     }
-  };
+  }, [messageCountInput]);
 
-  const applyScrollSpeed = () => {
+  const applyScrollSpeed = useCallback(() => {
     const speed = parseFloat(scrollSpeedInput);
     if (!isNaN(speed) && speed > 0) {
       setScrollSpeed(Math.min(100, speed));
     }
-  };
+  }, [scrollSpeedInput]);
 
-  const renderMessage = (index: number) => {
-    const message = generateMessage(index);
-    return (
-      <div
-        style={{
-          padding: '12px 16px',
-          borderBottom: '1px solid #1a1a24',
-          height: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '6px',
-        }}>
-          {/* Avatar */}
-          <div style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: message.user.color + '20',
-            border: `1px solid ${message.user.color}40`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '11px',
-            color: message.user.color,
-            fontWeight: 600,
-          }}>
-            {message.user.name[0].toUpperCase()}
-          </div>
-          
-          <span style={{ fontSize: '12px', color: message.user.color, fontWeight: 600 }}>
-            {message.user.name}
-          </span>
-          <span style={{ fontSize: '10px', color: '#52525b' }}>
-            {message.timestamp}
-          </span>
-          <span style={{ fontSize: '9px', color: '#3f3f46' }}>
-            #{index}
-          </span>
-        </div>
-        
-        {message.hasCode ? (
-          <pre style={{
-            margin: 0,
-            padding: '10px 12px',
-            background: '#0a0a0f',
-            borderRadius: '6px',
-            border: '1px solid #1a1a24',
-            fontSize: '11px',
-            color: '#a1a1aa',
-            overflow: 'hidden',
-            whiteSpace: 'pre-wrap',
-          }}>
-            {message.text.replace(/```\w*\n?/g, '').trim()}
-          </pre>
-        ) : message.hasQuote ? (
-          <div style={{
-            borderLeft: '2px solid #3b82f6',
-            paddingLeft: '12px',
-            color: '#a1a1aa',
-            fontSize: '12px',
-            lineHeight: 1.5,
-          }}>
-            {message.text}
-          </div>
-        ) : (
-          <div style={{
-            fontSize: '12px',
-            color: '#e4e4e7',
-            lineHeight: 1.5,
-          }}>
-            {message.text}
-          </div>
-        )}
-        
-        {message.reactions.length > 0 && (
-          <div style={{
-            display: 'flex',
-            gap: '6px',
-            marginTop: '8px',
-          }}>
-            {message.reactions.map((reaction, i) => (
-              <span
-                key={i}
-                style={{
-                  padding: '2px 8px',
-                  background: '#1a1a24',
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                }}
-              >
-                {reaction}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
+  const presets = isMobile 
+    ? [{ label: '10K', value: 10000 }, { label: '50K', value: 50000 }]
+    : [
+        { label: '10K', value: 10000 },
+        { label: '50K', value: 50000 },
+        { label: '250K', value: 250000 },
+        { label: '500K', value: 500000 },
+      ];
+
+  const renderMessage = useCallback((index: number) => (
+    <ChatMessage index={index} isMobile={isMobile} />
+  ), [isMobile]);
 
   return (
     <div style={styles.container}>
@@ -337,44 +382,66 @@ function ChatExample() {
           message_thread
           <span style={{ color: '#3b82f6' }}>]</span>
           <span style={{ color: '#52525b', marginLeft: '8px' }}>
-            {messageCount.toLocaleString()} messages
+            {messageCount.toLocaleString()} {isMobile ? '' : 'messages'}
           </span>
         </div>
         
         <div style={styles.controls}>
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>msgs</span>
-            <input
-              type="text"
-              value={messageCountInput}
-              onChange={(e) => setMessageCountInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyMessageCount()}
-              onBlur={applyMessageCount}
-              style={styles.input}
-            />
-          </div>
+          {presets.map((preset) => (
+            <button
+              key={preset.value}
+              onClick={() => {
+                setMessageCount(preset.value);
+                setMessageCountInput(String(preset.value));
+              }}
+              style={{
+                ...styles.button,
+                ...(messageCount === preset.value ? styles.buttonActive : {}),
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
           
-          <div style={styles.controlGroup}>
-            <span style={styles.label}>speed</span>
-            <input
-              type="text"
-              value={scrollSpeedInput}
-              onChange={(e) => setScrollSpeedInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyScrollSpeed()}
-              onBlur={applyScrollSpeed}
-              style={{ ...styles.input, width: '45px' }}
-            />
-          </div>
-          
-          <select
-            value={scrollPattern}
-            onChange={(e) => setScrollPattern(e.target.value as any)}
-            style={styles.select}
-          >
-            <option value="smooth">smooth</option>
-            <option value="jump">jump</option>
-            <option value="random">random</option>
-          </select>
+          {isDesktop && (
+            <>
+              <div style={{ width: '1px', height: '20px', background: '#1a1a24' }} />
+              
+              <div style={styles.controlGroup}>
+                <span style={styles.label}>msgs</span>
+                <input
+                  type="text"
+                  value={messageCountInput}
+                  onChange={(e) => setMessageCountInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyMessageCount()}
+                  onBlur={applyMessageCount}
+                  style={styles.input}
+                />
+              </div>
+              
+              <div style={styles.controlGroup}>
+                <span style={styles.label}>speed</span>
+                <input
+                  type="text"
+                  value={scrollSpeedInput}
+                  onChange={(e) => setScrollSpeedInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyScrollSpeed()}
+                  onBlur={applyScrollSpeed}
+                  style={{ ...styles.input, width: '45px' }}
+                />
+              </div>
+              
+              <select
+                value={scrollPattern}
+                onChange={(e) => setScrollPattern(e.target.value as any)}
+                style={styles.select}
+              >
+                <option value="smooth">smooth</option>
+                <option value="jump">jump</option>
+                <option value="random">random</option>
+              </select>
+            </>
+          )}
           
           <button
             onClick={() => setIsAutoScrolling(!isAutoScrolling)}
@@ -385,9 +452,19 @@ function ChatExample() {
           >
             {isAutoScrolling ? '■ stop' : '▶ scroll'}
           </button>
+          
+          <button
+            onClick={() => setShowBenchmark(!showBenchmark)}
+            style={{
+              ...styles.button,
+              ...(showBenchmark ? styles.buttonActive : {}),
+            }}
+          >
+            {showBenchmark ? '✕ close' : '⚡ bench'}
+          </button>
         </div>
         
-        <PerformanceMonitor metrics={metrics} />
+        {isDesktop && <PerformanceMonitor metrics={metrics} />}
       </div>
       
       <div style={styles.chat}>
@@ -402,6 +479,20 @@ function ChatExample() {
           {renderMessage}
         </WarperComponent>
       </div>
+      
+      {/* Benchmark Panel */}
+      {showBenchmark && (
+        <div style={styles.testPanel}>
+          <TestRunner
+            config={testConfig}
+            scrollRef={warperRef}
+            enabled={!isAutoScrolling}
+            onComplete={(results) => {
+              console.log('Benchmark complete:', results);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

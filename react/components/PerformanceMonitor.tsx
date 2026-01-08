@@ -67,7 +67,10 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions = {}) {
   const { sampleSize = 30, jankThreshold = 50 } = options; // Reduced sample size
   const targetFps = useDetectRefreshRate();
   
-  const frameTimesRef = useRef<number[]>([]);
+  // Use circular buffer instead of shift() for O(1) insertion
+  const frameTimesRef = useRef<Float64Array>(new Float64Array(sampleSize));
+  const frameIndexRef = useRef(0);
+  const frameCountRef = useRef(0);
   const lastFrameTimeRef = useRef(performance.now());
   const jankCountRef = useRef(0);
   const renderCountRef = useRef(0);
@@ -89,6 +92,13 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions = {}) {
   }, []);
 
   useEffect(() => {
+    // Ensure buffer is correct size
+    if (frameTimesRef.current.length !== sampleSize) {
+      frameTimesRef.current = new Float64Array(sampleSize);
+      frameIndexRef.current = 0;
+      frameCountRef.current = 0;
+    }
+    
     const measure = () => {
       const now = performance.now();
       const delta = now - lastFrameTimeRef.current;
@@ -96,9 +106,11 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions = {}) {
 
       if (delta > 0 && delta < 1000) {
         const times = frameTimesRef.current;
-        times.push(delta);
-        if (times.length > sampleSize) {
-          times.shift();
+        const idx = frameIndexRef.current;
+        times[idx] = delta;
+        frameIndexRef.current = (idx + 1) % sampleSize;
+        if (frameCountRef.current < sampleSize) {
+          frameCountRef.current++;
         }
 
         if (delta > jankThreshold) {
@@ -107,18 +119,19 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions = {}) {
 
         // Only update React state every 3 frames to reduce overhead
         updateCounterRef.current++;
-        if (updateCounterRef.current >= 3 && times.length > 0) {
+        const count = frameCountRef.current;
+        if (updateCounterRef.current >= 3 && count > 0) {
           updateCounterRef.current = 0;
           
-          // Fast min/max/sum calculation - no spread operators
+          // Fast min/max/sum calculation on circular buffer
           let sum = 0, minTime = times[0], maxTime = times[0];
-          for (let i = 0; i < times.length; i++) {
+          for (let i = 0; i < count; i++) {
             const t = times[i];
             sum += t;
             if (t < minTime) minTime = t;
             if (t > maxTime) maxTime = t;
           }
-          const avgFrameTime = sum / times.length;
+          const avgFrameTime = sum / count;
           
           setMetrics({
             fps: Math.round(1000 / delta),
@@ -147,7 +160,10 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions = {}) {
 
 export function PerformanceMonitor({ metrics }: PerformanceMonitorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fpsHistoryRef = useRef<number[]>([]);
+  // Use circular buffer for O(1) insertion instead of shift()
+  const fpsHistoryRef = useRef<Float64Array>(new Float64Array(120));
+  const historyIndexRef = useRef(0);
+  const historyCountRef = useRef(0);
   const maxHistorySize = 120;
   // Use detected target FPS from metrics, fallback to 120 (optimistic)
   const targetFps = metrics.targetFps || 120;
@@ -155,9 +171,12 @@ export function PerformanceMonitor({ metrics }: PerformanceMonitorProps) {
   const graphMax = Math.round(targetFps * 1.25);
 
   useEffect(() => {
-    fpsHistoryRef.current.push(metrics.fps);
-    if (fpsHistoryRef.current.length > maxHistorySize) {
-      fpsHistoryRef.current.shift();
+    const history = fpsHistoryRef.current;
+    const idx = historyIndexRef.current;
+    history[idx] = metrics.fps;
+    historyIndexRef.current = (idx + 1) % maxHistorySize;
+    if (historyCountRef.current < maxHistorySize) {
+      historyCountRef.current++;
     }
 
     const canvas = canvasRef.current;
@@ -190,14 +209,18 @@ export function PerformanceMonitor({ metrics }: PerformanceMonitorProps) {
     }
 
     // FPS history graph - scale dynamically based on target FPS
-    const history = fpsHistoryRef.current;
-    if (history.length > 1) {
+    // Read from circular buffer in order (oldest to newest)
+    const count = historyCountRef.current;
+    if (count > 1) {
       ctx.beginPath();
       const step = width / (maxHistorySize - 1);
+      const startIdx = historyIndexRef.current; // Oldest entry is at current index (just wrapped)
       
-      for (let i = 0; i < history.length; i++) {
+      for (let i = 0; i < count; i++) {
+        // Read in chronological order from circular buffer
+        const bufIdx = (startIdx + i) % maxHistorySize;
         const x = i * step;
-        const fps = Math.min(history[i], graphMax);
+        const fps = Math.min(history[bufIdx], graphMax);
         const y = height - (fps / graphMax) * height;
         
         if (i === 0) {
@@ -212,7 +235,7 @@ export function PerformanceMonitor({ metrics }: PerformanceMonitorProps) {
       ctx.stroke();
 
       // Fill under curve
-      ctx.lineTo((history.length - 1) * step, height);
+      ctx.lineTo((count - 1) * step, height);
       ctx.lineTo(0, height);
       ctx.closePath();
       ctx.fillStyle = 'rgba(0, 212, 170, 0.1)';
