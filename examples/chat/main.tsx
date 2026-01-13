@@ -167,113 +167,177 @@ function generateMessage(index: number) {
   const template = messageTemplates[index % messageTemplates.length];
   const hasCode = template.includes('```');
   const hasQuote = template.includes('>');
-  const baseHeight = hasCode ? 120 : hasQuote ? 80 : 50;
-  const extraLines = Math.floor((index * 17) % 3);
+  const isOwnMessage = index % 3 === 0; // Every 3rd message is "own" message (right-aligned)
+  
+  // Calculate height for bubble layout
+  let contentHeight = 0;
+  
+  if (hasCode) {
+    contentHeight = 90;
+  } else if (hasQuote) {
+    const lineCount = template.split('\n').length;
+    contentHeight = lineCount * 20 + 16;
+  } else {
+    const lineCount = Math.max(1, Math.ceil(template.length / 45));
+    contentHeight = lineCount * 20 + 8;
+  }
+  
+  const hasReactions = index % 5 === 0 || index % 7 === 0;
+  const reactionHeight = hasReactions ? 32 : 0;
+  // Own: bubble + timestamp(20) + reactions + padding(12)
+  // Other: avatar(32) + name(20) + bubble + reactions + padding(12)
+  const totalHeight = contentHeight + reactionHeight + (isOwnMessage ? 44 : 76);
   
   return {
     id: `msg-${index}`,
     user,
-    text: template + (extraLines > 0 ? '\n' + '.'.repeat(extraLines * 20) : ''),
-    timestamp: new Date(Date.now() - index * 60000).toLocaleTimeString(),
+    text: template,
+    timestamp: new Date(Date.now() - index * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     hasCode,
     hasQuote,
-    height: baseHeight + extraLines * 16,
+    isOwnMessage,
+    height: Math.max(56, totalHeight),
     reactions: index % 5 === 0 ? ['👍', '🚀'] : index % 7 === 0 ? ['❤️'] : [],
   };
 }
 
 const ChatMessage = React.memo(function ChatMessage({ index, isMobile }: { index: number; isMobile: boolean }) {
   const message = generateMessage(index);
-  const avatarSize = isMobile ? 24 : 28;
-  const fontSize = isMobile ? 11 : 12;
+  const isOwn = message.isOwnMessage;
   
   return (
     <div style={{
-      padding: isMobile ? '10px 12px' : '12px 16px',
-      borderBottom: '1px solid #1a1a24',
-      height: '100%',
+      display: 'flex',
+      flexDirection: isOwn ? 'row-reverse' : 'row',
+      alignItems: 'flex-end',
+      gap: '8px',
+      padding: isMobile ? '4px 12px' : '6px 20px',
       boxSizing: 'border-box',
     }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: isMobile ? '8px' : '10px',
-        marginBottom: '6px',
-      }}>
+      {/* Avatar - only for others */}
+      {!isOwn && (
         <div style={{
-          width: avatarSize,
-          height: avatarSize,
-          borderRadius: '6px',
-          background: message.user.color + '20',
-          border: `1px solid ${message.user.color}40`,
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background: `linear-gradient(135deg, ${message.user.color}40, ${message.user.color}20)`,
+          border: `2px solid ${message.user.color}60`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: isMobile ? '10px' : '11px',
+          fontSize: '12px',
           color: message.user.color,
-          fontWeight: 600,
+          fontWeight: 700,
+          flexShrink: 0,
         }}>
           {message.user.name[0].toUpperCase()}
         </div>
-        <span style={{ fontSize: fontSize, color: message.user.color, fontWeight: 600 }}>
-          {message.user.name}
-        </span>
-        <span style={{ fontSize: isMobile ? '9px' : '10px', color: '#52525b' }}>
-          {message.timestamp}
-        </span>
-        {!isMobile && (
-          <span style={{ fontSize: '9px', color: '#3f3f46' }}>#{index}</span>
+      )}
+      
+      {/* Message bubble */}
+      <div style={{
+        maxWidth: isMobile ? '85%' : '65%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: isOwn ? 'flex-end' : 'flex-start',
+      }}>
+        {/* Name & time - only for others */}
+        {!isOwn && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '4px',
+            paddingLeft: '12px',
+          }}>
+            <span style={{ fontSize: '11px', color: message.user.color, fontWeight: 600 }}>
+              {message.user.name}
+            </span>
+            <span style={{ fontSize: '10px', color: '#52525b' }}>
+              {message.timestamp}
+            </span>
+          </div>
+        )}
+        
+        {/* Bubble */}
+        <div style={{
+          padding: message.hasCode ? '4px' : '10px 14px',
+          background: isOwn 
+            ? 'linear-gradient(135deg, #3b82f6, #2563eb)' 
+            : '#1e1e2e',
+          borderRadius: isOwn ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+        }}>
+          {message.hasCode ? (
+            <pre style={{
+              margin: 0,
+              padding: '10px 12px',
+              background: '#0d0d14',
+              borderRadius: '14px',
+              fontSize: '11px',
+              color: '#a1a1aa',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+            }}>
+              {message.text.replace(/```\w*\n?/g, '').trim()}
+            </pre>
+          ) : message.hasQuote ? (
+            <div style={{
+              borderLeft: `2px solid ${isOwn ? 'rgba(255,255,255,0.4)' : '#3b82f6'}`,
+              paddingLeft: '10px',
+              color: isOwn ? 'rgba(255,255,255,0.9)' : '#d4d4d8',
+              fontSize: '13px',
+              lineHeight: 1.5,
+            }}>
+              {message.text}
+            </div>
+          ) : (
+            <div style={{
+              fontSize: '13px',
+              color: isOwn ? '#ffffff' : '#e4e4e7',
+              lineHeight: 1.5,
+              wordBreak: 'break-word',
+            }}>
+              {message.text}
+            </div>
+          )}
+        </div>
+        
+        {/* Timestamp for own messages */}
+        {isOwn && (
+          <span style={{ 
+            fontSize: '10px', 
+            color: '#52525b', 
+            marginTop: '4px',
+            paddingRight: '4px',
+          }}>
+            {message.timestamp}
+          </span>
+        )}
+        
+        {/* Reactions */}
+        {message.reactions.length > 0 && (
+          <div style={{ 
+            display: 'flex', 
+            gap: '6px', 
+            marginTop: '6px',
+          }}>
+            {message.reactions.map((reaction, i) => (
+              <span key={i} style={{
+                padding: '4px 10px',
+                background: 'rgba(59, 130, 246, 0.15)',
+                borderRadius: '12px',
+                fontSize: '13px',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                cursor: 'pointer',
+              }}>
+                {reaction}
+              </span>
+            ))}
+          </div>
         )}
       </div>
-      
-      {message.hasCode ? (
-        <pre style={{
-          margin: 0,
-          padding: isMobile ? '8px 10px' : '10px 12px',
-          background: '#0a0a0f',
-          borderRadius: '6px',
-          border: '1px solid #1a1a24',
-          fontSize: isMobile ? '10px' : '11px',
-          color: '#a1a1aa',
-          overflow: 'hidden',
-          whiteSpace: 'pre-wrap',
-        }}>
-          {message.text.replace(/```\w*\n?/g, '').trim()}
-        </pre>
-      ) : message.hasQuote ? (
-        <div style={{
-          borderLeft: '2px solid #3b82f6',
-          paddingLeft: isMobile ? '10px' : '12px',
-          color: '#a1a1aa',
-          fontSize: fontSize,
-          lineHeight: 1.5,
-        }}>
-          {message.text}
-        </div>
-      ) : (
-        <div style={{
-          fontSize: fontSize,
-          color: '#e4e4e7',
-          lineHeight: 1.5,
-        }}>
-          {message.text}
-        </div>
-      )}
-      
-      {message.reactions.length > 0 && (
-        <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-          {message.reactions.map((reaction, i) => (
-            <span key={i} style={{
-              padding: '2px 8px',
-              background: '#1a1a24',
-              borderRadius: '12px',
-              fontSize: isMobile ? '10px' : '11px',
-            }}>
-              {reaction}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 });
@@ -307,7 +371,7 @@ function ChatExample() {
       cache[index] = generateMessage(index).height;
       return cache[index];
     };
-  }, [messageCount]);
+  }, []);
 
   useEffect(() => {
     if (!isAutoScrolling) return;
