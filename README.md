@@ -11,7 +11,7 @@
 
 10,000,000+ rows | 120+ FPS | O(1) lookups | Cross-browser
 
-[Live Demo](https://warper-org.github.io/warper) | [Documentation](#api-reference) | [Examples](#examples)
+[Live Demo](https://warper.tech/) | [Documentation](#api-reference) | [Examples](https://warper.tech/#examples)
 
 </div>
 
