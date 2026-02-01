@@ -214,11 +214,11 @@ export function useVirtualizer<T, TElement extends HTMLElement = HTMLDivElement>
     r.useBufferA = !r.useBufferA;
 
     // Items are positioned RELATIVE to the first visible item
-    // Each item's offset = its position relative to the first item
-    // When scrollMultiplier is used, offsets and sizes must be in DOM coordinates (scaled down)
+    // Each item's offset = its position relative to the first item (in virtual pixels)
+    // The paddingTop handles the absolute positioning
     
     if (r.isUniform) {
-      const size = r.uniformSize / r.scrollMultiplier;
+      const size = r.uniformSize;
       for (let i = 0; i < count; i++) {
         const idx = start + i;
         buffer.items[i] = idx;
@@ -230,9 +230,9 @@ export function useVirtualizer<T, TElement extends HTMLElement = HTMLDivElement>
       for (let i = 0; i < count; i++) {
         const idx = start + i;
         buffer.items[i] = idx;
-        // Offset relative to first visible item's position (scaled to DOM coordinates)
-        buffer.offsets[i] = (r.virtualizer.get_offset(idx) - firstItemVirtualOffset) / r.scrollMultiplier;
-        buffer.sizes[i] = r.virtualizer.get_size(idx) / r.scrollMultiplier;
+        // Offset relative to first visible item's position
+        buffer.offsets[i] = r.virtualizer.get_offset(idx) - firstItemVirtualOffset;
+        buffer.sizes[i] = r.virtualizer.get_size(idx);
       }
     }
 
