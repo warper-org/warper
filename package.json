@@ -13,6 +13,12 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./svelte": {
+      "types": "./dist/svelte/index.d.ts",
+      "svelte": "./dist/svelte/index.js",
+      "import": "./dist/svelte/index.js",
+      "default": "./dist/svelte/index.js"
+    },
     "./wasm/*": "./dist/wasm/*",
     "./package.json": "./package.json"
   },
@@ -53,7 +59,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "bun run build:wasm && bun run copy:wasm && tsc && mkdir -p dist/wasm && cp wasm/warper_wasm.js wasm/warper_wasm.d.ts wasm/warper_wasm_bg.wasm wasm/warper_wasm_bg.wasm.d.ts dist/wasm/",
+    "build": "bun run build:wasm && bun run copy:wasm && tsc && bun run build:svelte && mkdir -p dist/wasm && cp wasm/warper_wasm.js wasm/warper_wasm.d.ts wasm/warper_wasm_bg.wasm wasm/warper_wasm_bg.wasm.d.ts dist/wasm/",
+    "build:svelte": "svelte-package -i ./svelte -o ./dist/svelte --tsconfig ./tsconfig.svelte.json",
     "build:wasm": "cd wasm/rust && wasm-pack build --target web --release && rm -f pkg/.gitignore",
     "copy:wasm": "cp wasm/rust/pkg/warper_wasm.js wasm/rust/pkg/warper_wasm.d.ts wasm/rust/pkg/warper_wasm_bg.wasm wasm/rust/pkg/warper_wasm_bg.wasm.d.ts wasm/",
     "build:examples": "mkdir -p examples-dist && cp examples/index.html examples-dist/ && bun vite build --config examples/list/vite.config.ts --outDir ../../examples-dist/list && bun vite build --config examples/grid/vite.config.ts --outDir ../../examples-dist/grid && bun vite build --config examples/one-million-rows/vite.config.ts --outDir ../../examples-dist/one-million-rows && bun vite build --config examples/chat/vite.config.ts --outDir ../../examples-dist/chat && bun vite build --config examples/tree/vite.config.ts --outDir ../../examples-dist/tree",
@@ -69,12 +76,21 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "svelte": "^5.29.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true },
+    "svelte": { "optional": true }
   },
   "devDependencies": {
+    "@sveltejs/package": "^2.3.7",
     "@types/react": "^18.2.66 || ^19.0.0",
     "@types/react-dom": "^18.2.22 || ^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "svelte": "^5.29.0",
+    "svelte2tsx": "^0.7.0",
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
     "vite-plugin-top-level-await": "^1.5.0",

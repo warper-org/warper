@@ -25,28 +25,28 @@
 
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { VirtualizerOptions } from '../../types';
-import { 
-  initializeWasm, 
+import {
+  initializeWasm,
   createVirtualizer,
   createUniformVirtualizer,
   QuantumVariable,
   QuantumUniform,
 } from '../../core/wasm';
+import {
+  MAX_SAFE_SCROLL_HEIGHT,
+  MAX_VISIBLE,
+  bufferA,
+  bufferB,
+  cached,
+  EMPTY_RANGE,
+  type VirtualRangeSnapshot,
+} from '../../core/buffers';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export interface VirtualRange {
-  startIndex: number;
-  endIndex: number;
-  items: readonly number[];
-  offsets: readonly number[];
-  sizes: readonly number[];
-  totalHeight: number;
-  paddingTop: number;
-  velocity: number;
-}
+export type VirtualRange = VirtualRangeSnapshot;
 
 export interface UseVirtualizerResult<TElement extends HTMLElement> {
   scrollElementRef: React.RefCallback<TElement>;
@@ -57,45 +57,6 @@ export interface UseVirtualizerResult<TElement extends HTMLElement> {
   scrollToIndex: (index: number, behavior?: ScrollBehavior) => void;
   totalHeight: number;
 }
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-const MAX_SAFE_SCROLL_HEIGHT = 15_000_000;
-const MAX_VISIBLE = 200;
-
-// Double-buffered TypedArrays for zero-allocation hot path
-// Using TypedArrays allows subarray() which creates views without copying
-const bufferA = {
-  items: new Int32Array(MAX_VISIBLE),
-  offsets: new Float64Array(MAX_VISIBLE),
-  sizes: new Float64Array(MAX_VISIBLE),
-};
-const bufferB = {
-  items: new Int32Array(MAX_VISIBLE),
-  offsets: new Float64Array(MAX_VISIBLE),
-  sizes: new Float64Array(MAX_VISIBLE),
-};
-
-// Reusable array views to avoid allocation - will be populated from TypedArrays
-let cachedItemsA: number[] = [];
-let cachedItemsB: number[] = [];
-let cachedOffsetsA: number[] = [];
-let cachedOffsetsB: number[] = [];
-let cachedSizesA: number[] = [];
-let cachedSizesB: number[] = [];
-
-const EMPTY_RANGE: VirtualRange = Object.freeze({
-  startIndex: 0,
-  endIndex: 0,
-  items: Object.freeze([]) as readonly number[],
-  offsets: Object.freeze([]) as readonly number[],
-  sizes: Object.freeze([]) as readonly number[],
-  totalHeight: 0,
-  paddingTop: 0,
-  velocity: 0,
-});
 
 // ============================================================================
 // Main Hook
@@ -238,23 +199,23 @@ export function useVirtualizer<T, TElement extends HTMLElement = HTMLDivElement>
 
     // Zero-allocation: reuse cached arrays and update their contents
     // This avoids creating new arrays on every frame
-    let cachedItems = useA ? cachedItemsA : cachedItemsB;
-    let cachedOffsets = useA ? cachedOffsetsA : cachedOffsetsB;
-    let cachedSizes = useA ? cachedSizesA : cachedSizesB;
-    
+    let cachedItems = useA ? cached.itemsA : cached.itemsB;
+    let cachedOffsets = useA ? cached.offsetsA : cached.offsetsB;
+    let cachedSizes = useA ? cached.sizesA : cached.sizesB;
+
     // Resize cached arrays only if needed (rare)
     if (cachedItems.length !== count) {
       cachedItems = new Array(count);
       cachedOffsets = new Array(count);
       cachedSizes = new Array(count);
       if (useA) {
-        cachedItemsA = cachedItems;
-        cachedOffsetsA = cachedOffsets;
-        cachedSizesA = cachedSizes;
+        cached.itemsA = cachedItems;
+        cached.offsetsA = cachedOffsets;
+        cached.sizesA = cachedSizes;
       } else {
-        cachedItemsB = cachedItems;
-        cachedOffsetsB = cachedOffsets;
-        cachedSizesB = cachedSizes;
+        cached.itemsB = cachedItems;
+        cached.offsetsB = cachedOffsets;
+        cached.sizesB = cachedSizes;
       }
     }
     
