@@ -43,6 +43,7 @@
     "examples",
     "examples-dist",
     "dist",
+    "svelte",
     "vite.config.ts",
     "*.config.ts"
   ]

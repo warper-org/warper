@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist/svelte",
+    "types": ["svelte"]
+  },
+  "include": [
+    "svelte/**/*.ts",
+    "svelte/**/*.svelte",
+    "svelte/**/*.svelte.ts",
+    "core/**/*.ts",
+    "types/core.ts",
+    "wasm/rust/pkg/warper_wasm.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "examples",
+    "examples-dist",
+    "benchmark",
+    "react",
+    "types/react.ts",
+    "types/index.ts"
+  ]
+}
